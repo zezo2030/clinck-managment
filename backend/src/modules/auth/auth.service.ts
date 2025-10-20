@@ -1,7 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
-import { PrismaService } from '../../database/prisma.service';
 import * as bcrypt from 'bcryptjs';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 
@@ -10,7 +9,6 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private prisma: PrismaService,
   ) {}
 
   async validateUser(email: string, password: string): Promise<any> {
@@ -35,25 +33,6 @@ export class AuthService {
   }
 
   async register(createUserDto: CreateUserDto) {
-    const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-    
-    return this.prisma.user.create({
-      data: {
-        email: createUserDto.email,
-        password: hashedPassword,
-        role: createUserDto.role || 'PATIENT',
-        profile: {
-          create: {
-            firstName: createUserDto.firstName,
-            lastName: createUserDto.lastName,
-            phone: createUserDto.phone,
-            address: createUserDto.address,
-          },
-        },
-      },
-      include: {
-        profile: true,
-      },
-    });
+    return this.usersService.create(createUserDto);
   }
 }

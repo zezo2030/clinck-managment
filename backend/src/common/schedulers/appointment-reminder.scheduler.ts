@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { PrismaService } from '../../database/prisma.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, In, Between } from 'typeorm';
+import { Appointment } from '../../database/entities/appointment.entity';
 import { NotificationUtil } from '../utils/notification.util';
 
 @Injectable()
 export class AppointmentReminderScheduler {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @InjectRepository(Appointment) private readonly appointmentRepository: Repository<Appointment>,
+  ) {}
 
   /**
    * إرسال تذكيرات المواعيد كل ساعة
@@ -20,24 +24,12 @@ export class AppointmentReminderScheduler {
     dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1);
 
     // البحث عن المواعيد غداً
-    const appointments = await this.prisma.appointment.findMany({
+    const appointments = await this.appointmentRepository.find({
       where: {
-        appointmentDate: {
-          gte: tomorrow,
-          lt: dayAfterTomorrow,
-        },
-        status: {
-          in: ['SCHEDULED', 'CONFIRMED'],
-        },
-      },
-      include: {
-        patient: {
-          include: { profile: true },
-        },
-        doctor: {
-          include: { profile: true },
-        },
-      },
+        appointmentDate: Between(tomorrow, dayAfterTomorrow) as any,
+        status: In(['SCHEDULED', 'CONFIRMED']) as any,
+      } as any,
+      relations: ['patient', 'patient.profile', 'doctor', 'doctor.profile'],
     });
 
     // إرسال التذكيرات
@@ -56,24 +48,12 @@ export class AppointmentReminderScheduler {
     const twoHoursFromNow = new Date();
     twoHoursFromNow.setHours(twoHoursFromNow.getHours() + 2);
 
-    const appointments = await this.prisma.appointment.findMany({
+    const appointments = await this.appointmentRepository.find({
       where: {
-        appointmentDate: {
-          gte: twoHoursFromNow,
-          lt: new Date(twoHoursFromNow.getTime() + 30 * 60 * 1000), // خلال 30 دقيقة
-        },
-        status: {
-          in: ['SCHEDULED', 'CONFIRMED'],
-        },
-      },
-      include: {
-        patient: {
-          include: { profile: true },
-        },
-        doctor: {
-          include: { profile: true },
-        },
-      },
+        appointmentDate: Between(twoHoursFromNow, new Date(twoHoursFromNow.getTime() + 30 * 60 * 1000)) as any,
+        status: In(['SCHEDULED', 'CONFIRMED']) as any,
+      } as any,
+      relations: ['patient', 'patient.profile', 'doctor', 'doctor.profile'],
     });
 
     for (const appointment of appointments) {

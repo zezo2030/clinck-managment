@@ -7,7 +7,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { Role } from '@prisma/client';
+import { RoleEnum } from '../../database/enums/role.enum';
 
 @ApiTags('Users')
 @Controller('users')
@@ -18,7 +18,7 @@ export class UsersController {
 
   @Post()
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(RoleEnum.ADMIN)
   @ApiOperation({ summary: 'إنشاء مستخدم جديد (للمدير فقط)' })
   @ApiResponse({ status: 201, description: 'تم إنشاء المستخدم بنجاح' })
   @ApiResponse({ status: 403, description: 'غير مصرح' })
@@ -28,7 +28,7 @@ export class UsersController {
 
   @Get()
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(RoleEnum.ADMIN)
   @ApiOperation({ summary: 'الحصول على جميع المستخدمين (للمدير فقط)' })
   @ApiResponse({ status: 200, description: 'قائمة المستخدمين' })
   @ApiResponse({ status: 403, description: 'غير مصرح' })
@@ -54,7 +54,7 @@ export class UsersController {
 
   @Delete(':id')
   @UseGuards(RolesGuard)
-  @Roles(Role.ADMIN)
+  @Roles(RoleEnum.ADMIN)
   @ApiOperation({ summary: 'حذف مستخدم (للمدير فقط)' })
   @ApiResponse({ status: 200, description: 'تم حذف المستخدم بنجاح' })
   @ApiResponse({ status: 403, description: 'غير مصرح' })

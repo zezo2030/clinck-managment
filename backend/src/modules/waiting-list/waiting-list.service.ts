@@ -1,77 +1,45 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { WaitingList } from '../../database/entities/waiting-list.entity';
+import { User } from '../../database/entities/user.entity';
+import { Department } from '../../database/entities/department.entity';
 import { AddToWaitingListDto } from './dto/add-to-waiting-list.dto';
 
 @Injectable()
 export class WaitingListService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @InjectRepository(WaitingList) private readonly waitingRepository: Repository<WaitingList>,
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(Department) private readonly departmentRepository: Repository<Department>,
+  ) {}
 
   async addToWaitingList(patientId: number, doctorId: number, departmentId: number, priority: number = 1) {
     // التحقق من وجود المريض في قائمة الانتظار
-    const existingEntry = await this.prisma.waitingList.findFirst({
-      where: {
-        patientId,
-        doctorId,
-      },
-    });
+    const existingEntry = await this.waitingRepository.findOne({ where: { patientId, doctorId } as any });
 
     if (existingEntry) {
       throw new Error('المريض موجود بالفعل في قائمة الانتظار');
     }
 
-    return this.prisma.waitingList.create({
-      data: {
-        patientId,
-        doctorId,
-        departmentId,
-        priority,
-      },
-      include: {
-        patient: {
-          include: { profile: true },
-        },
-        doctor: {
-          include: { profile: true },
-        },
-        department: true,
-      },
-    });
+    const wl = this.waitingRepository.create({ patientId, doctorId, departmentId, priority } as any);
+    const savedWl = await this.waitingRepository.save(wl);
+    return this.waitingRepository.findOne({ where: { id: (savedWl as any).id } as any, relations: ['patient', 'patient.profile', 'doctor', 'doctor.profile', 'department'] });
   }
 
   async getWaitingList(doctorId?: number) {
-    return this.prisma.waitingList.findMany({
-      where: doctorId ? { doctorId } : {},
-      include: {
-        patient: {
-          include: { profile: true },
-        },
-        doctor: {
-          include: { profile: true },
-        },
-        department: true,
-      },
-      orderBy: [
-        { priority: 'desc' },
-        { createdAt: 'asc' },
-      ],
+    return this.waitingRepository.find({
+      where: doctorId ? { doctorId } as any : {},
+      relations: ['patient', 'patient.profile', 'doctor', 'doctor.profile', 'department'],
+      order: { priority: 'DESC', createdAt: 'ASC' },
     });
   }
 
   async notifyNextInLine(doctorId: number, availableDate: Date, availableTime: Date) {
-    const nextInLine = await this.prisma.waitingList.findFirst({
-      where: {
-        doctorId,
-        notified: false,
-      },
-      include: {
-        patient: {
-          include: { profile: true },
-        },
-      },
-      orderBy: [
-        { priority: 'desc' },
-        { createdAt: 'asc' },
-      ],
+    const nextInLine = await this.waitingRepository.findOne({
+      where: { doctorId, notified: false } as any,
+      relations: ['patient', 'patient.profile'],
+      order: { priority: 'DESC', createdAt: 'ASC' },
     });
 
     if (nextInLine) {
@@ -83,26 +51,20 @@ export class WaitingListService {
       });
 
       // تحديث حالة الإشعار
-      await this.prisma.waitingList.update({
-        where: { id: nextInLine.id },
-        data: { notified: true },
-      });
+      await this.waitingRepository.update({ id: nextInLine.id } as any, { notified: true });
     }
 
     return nextInLine;
   }
 
   async removeFromWaitingList(id: number) {
-    return this.prisma.waitingList.delete({
-      where: { id },
-    });
+    await this.waitingRepository.delete({ id } as any);
+    return { id } as any;
   }
 
   async updatePriority(id: number, priority: number) {
-    return this.prisma.waitingList.update({
-      where: { id },
-      data: { priority },
-    });
+    await this.waitingRepository.update({ id } as any, { priority });
+    return this.waitingRepository.findOne({ where: { id } as any });
   }
 
   private async sendNotification(userId: number, notification: any) {

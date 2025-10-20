@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
@@ -9,13 +10,15 @@ import { DepartmentsModule } from './modules/departments/departments.module';
 import { DoctorsModule } from './modules/doctors/doctors.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { WaitingListModule } from './modules/waiting-list/waiting-list.module';
-import { PrismaService } from './database/prisma.service';
 import { AppointmentReminderScheduler } from './common/schedulers/appointment-reminder.scheduler';
 import { WaitingListScheduler } from './common/schedulers/waiting-list.scheduler';
 import appConfig from './config/app.config';
 import jwtConfig from './config/jwt.config';
 import redisConfig from './config/redis.config';
 import emailConfig from './config/email.config';
+import { typeOrmConfig } from './database/typeorm.config';
+import { Appointment } from './database/entities/appointment.entity';
+import { WaitingList } from './database/entities/waiting-list.entity';
 
 @Module({
   imports: [
@@ -23,6 +26,9 @@ import emailConfig from './config/email.config';
       isGlobal: true,
       load: [appConfig, jwtConfig, redisConfig, emailConfig],
     }),
+    TypeOrmModule.forRoot(typeOrmConfig(process.env)),
+    // Repositories needed by schedulers
+    TypeOrmModule.forFeature([Appointment, WaitingList]),
     ScheduleModule.forRoot(),
     AuthModule,
     UsersModule,
@@ -33,6 +39,6 @@ import emailConfig from './config/email.config';
     AppointmentsModule,
     WaitingListModule,
   ],
-  providers: [PrismaService, AppointmentReminderScheduler, WaitingListScheduler],
+  providers: [AppointmentReminderScheduler, WaitingListScheduler],
 })
 export class AppModule {}

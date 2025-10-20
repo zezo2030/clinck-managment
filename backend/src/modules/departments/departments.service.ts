@@ -1,98 +1,58 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Department } from '../../database/entities/department.entity';
+import { Clinic } from '../../database/entities/clinic.entity';
+import { Doctor } from '../../database/entities/doctor.entity';
 import { CreateDepartmentDto } from './dto/create-department.dto';
 import { UpdateDepartmentDto } from './dto/update-department.dto';
 
 @Injectable()
 export class DepartmentsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @InjectRepository(Department) private readonly departmentRepository: Repository<Department>,
+    @InjectRepository(Clinic) private readonly clinicRepository: Repository<Clinic>,
+    @InjectRepository(Doctor) private readonly doctorRepository: Repository<Doctor>,
+  ) {}
 
   async create(createDepartmentDto: CreateDepartmentDto) {
-    return this.prisma.department.create({
-      data: createDepartmentDto,
-      include: {
-        clinic: true,
-        doctors: {
-          include: {
-            user: {
-              include: { profile: true },
-            },
-          },
-        },
-      },
-    });
+    const dept = this.departmentRepository.create(createDepartmentDto as any);
+    const savedDept = await this.departmentRepository.save(dept);
+    return this.findOne((savedDept as any).id);
   }
 
   async findAll(clinicId?: number) {
-    return this.prisma.department.findMany({
-      where: clinicId ? { clinicId } : {},
-      include: {
-        clinic: true,
-        doctors: {
-          include: {
-            user: {
-              include: { profile: true },
-            },
-          },
-        },
-      },
+    return this.departmentRepository.find({
+      where: clinicId ? { clinicId } as any : {},
+      relations: ['clinic', 'doctors', 'doctors.user', 'doctors.user.profile'],
     });
   }
 
   async findOne(id: number) {
-    return this.prisma.department.findUnique({
+    return this.departmentRepository.findOne({
       where: { id },
-      include: {
-        clinic: true,
-        doctors: {
-          include: {
-            user: {
-              include: { profile: true },
-            },
-            schedules: true,
-          },
-        },
-        appointments: {
-          include: {
-            patient: {
-              include: { profile: true },
-            },
-            doctor: {
-              include: { profile: true },
-            },
-          },
-        },
-      },
+      relations: [
+        'clinic',
+        'doctors',
+        'doctors.user',
+        'doctors.user.profile',
+        'doctors.schedules',
+      ],
     });
   }
 
   async update(id: number, updateDepartmentDto: UpdateDepartmentDto) {
-    return this.prisma.department.update({
-      where: { id },
-      data: updateDepartmentDto,
-      include: {
-        clinic: true,
-        doctors: {
-          include: {
-            user: {
-              include: { profile: true },
-            },
-          },
-        },
-      },
-    });
+    await this.departmentRepository.update({ id }, updateDepartmentDto as any);
+    return this.findOne(id);
   }
 
   async remove(id: number) {
-    return this.prisma.department.delete({
-      where: { id },
-    });
+    await this.departmentRepository.delete({ id });
+    return { id } as any;
   }
 
   async setActive(id: number, isActive: boolean) {
-    return this.prisma.department.update({
-      where: { id },
-      data: { isActive },
-    });
+    await this.departmentRepository.update({ id }, { isActive });
+    return this.findOne(id);
   }
 }

@@ -1,11 +1,11 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { PrismaService } from '../database/prisma.service';
+import { DataSource } from 'typeorm';
 
 @ApiTags('Health')
 @Controller('health')
 export class HealthController {
-  constructor(private prisma: PrismaService) {}
+  constructor(private dataSource: DataSource) {}
 
   @Get()
   @ApiOperation({ summary: 'فحص حالة النظام' })
@@ -13,7 +13,7 @@ export class HealthController {
   async check() {
     try {
       // فحص قاعدة البيانات
-      await this.prisma.$queryRaw`SELECT 1`;
+      await this.dataSource.query('SELECT 1');
       
       return {
         status: 'ok',

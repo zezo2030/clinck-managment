@@ -1,11 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { PrismaService } from '../../database/prisma.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Appointment } from '../../database/entities/appointment.entity';
+import { WaitingList } from '../../database/entities/waiting-list.entity';
 import { NotificationUtil } from '../utils/notification.util';
 
 @Injectable()
 export class WaitingListScheduler {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @InjectRepository(Appointment) private readonly appointmentRepository: Repository<Appointment>,
+    @InjectRepository(WaitingList) private readonly waitingRepository: Repository<WaitingList>,
+  ) {}
 
   /**
    * فحص قائمة الانتظار كل 30 دقيقة
@@ -13,16 +19,9 @@ export class WaitingListScheduler {
   @Cron('0 */30 * * * *') // كل 30 دقيقة
   async processWaitingList() {
     // البحث عن المواعيد الملغية أو المتاحة
-    const cancelledAppointments = await this.prisma.appointment.findMany({
-      where: {
-        status: 'CANCELLED',
-        appointmentDate: {
-          gte: new Date(),
-        },
-      },
-      include: {
-        doctor: true,
-      },
+    const cancelledAppointments = await this.appointmentRepository.find({
+      where: { status: 'CANCELLED' as any } as any,
+      relations: ['doctor'],
     });
 
     // إشعار المرضى في قائمة الانتظار
@@ -37,21 +36,11 @@ export class WaitingListScheduler {
    * إشعار المرضى في قائمة الانتظار عند توفر موعد
    */
   private async notifyWaitingListPatients(doctorId: number, availableDate: Date, availableTime: Date) {
-    const waitingList = await this.prisma.waitingList.findMany({
-      where: {
-        doctorId,
-        notified: false,
-      },
-      include: {
-        patient: {
-          include: { profile: true },
-        },
-      },
-      orderBy: [
-        { priority: 'desc' },
-        { createdAt: 'asc' },
-      ],
-      take: 5, // إشعار أول 5 مرضى
+    const waitingList = await this.waitingRepository.find({
+      where: { doctorId, notified: false } as any,
+      relations: ['patient', 'patient.profile'],
+      order: { priority: 'DESC', createdAt: 'ASC' },
+      take: 5,
     });
 
     for (const entry of waitingList) {
@@ -64,10 +53,7 @@ export class WaitingListScheduler {
       );
 
       // تحديث حالة الإشعار
-      await this.prisma.waitingList.update({
-        where: { id: entry.id },
-        data: { notified: true },
-      });
+      await this.waitingRepository.update({ id: entry.id } as any, { notified: true });
     }
 
     console.log(`Notified ${waitingList.length} patients in waiting list`);
@@ -81,14 +67,12 @@ export class WaitingListScheduler {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const deleted = await this.prisma.waitingList.deleteMany({
-      where: {
-        createdAt: {
-          lt: thirtyDaysAgo,
-        },
-      },
-    });
+    const { affected } = await this.waitingRepository.createQueryBuilder()
+      .delete()
+      .from(WaitingList)
+      .where('createdAt < :date', { date: thirtyDaysAgo })
+      .execute();
 
-    console.log(`Cleaned up ${deleted.count} old waiting list entries`);
+    console.log(`Cleaned up ${affected || 0} old waiting list entries`);
   }
 }

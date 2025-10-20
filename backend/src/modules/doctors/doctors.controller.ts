@@ -18,7 +18,7 @@ import { CreateScheduleDto } from './dto/create-schedule.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { Role } from '@prisma/client';
+import { RoleEnum } from '../../database/enums/role.enum';
 
 @Controller('doctors')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -29,25 +29,25 @@ export class DoctorsController {
   ) {}
 
   @Post()
-  @Roles(Role.ADMIN)
+  @Roles(RoleEnum.ADMIN)
   create(@Body() createDoctorDto: CreateDoctorDto) {
     return this.doctorsService.create(createDoctorDto);
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.DOCTOR, Role.PATIENT)
+  @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR, RoleEnum.PATIENT)
   findAll(@Query() query: any) {
     return this.doctorsService.findAll(query);
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.DOCTOR, Role.PATIENT)
+  @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR, RoleEnum.PATIENT)
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.doctorsService.findOne(id);
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.DOCTOR)
+  @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR)
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDoctorDto: UpdateDoctorDto,
@@ -56,13 +56,13 @@ export class DoctorsController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN)
+  @Roles(RoleEnum.ADMIN)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.doctorsService.remove(id);
   }
 
   @Patch(':id/availability')
-  @Roles(Role.ADMIN, Role.DOCTOR)
+  @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR)
   setAvailability(
     @Param('id', ParseIntPipe) id: number,
     @Body('isAvailable') isAvailable: boolean,
@@ -72,7 +72,7 @@ export class DoctorsController {
 
   // Schedule endpoints
   @Post(':id/schedules')
-  @Roles(Role.ADMIN, Role.DOCTOR)
+  @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR)
   createSchedule(
     @Param('id', ParseIntPipe) doctorId: number,
     @Body() createScheduleDto: CreateScheduleDto,
@@ -81,13 +81,13 @@ export class DoctorsController {
   }
 
   @Get(':id/schedules')
-  @Roles(Role.ADMIN, Role.DOCTOR, Role.PATIENT)
+  @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR, RoleEnum.PATIENT)
   getDoctorSchedule(@Param('id', ParseIntPipe) doctorId: number) {
     return this.schedulesService.getDoctorSchedule(doctorId);
   }
 
   @Get('available')
-  @Roles(Role.ADMIN, Role.DOCTOR, Role.PATIENT)
+  @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR, RoleEnum.PATIENT)
   getAvailableDoctors(
     @Query('date') date: string,
     @Query('departmentId') departmentId?: string,

@@ -1,5 +1,5 @@
 import { IsOptional, IsString, IsInt, IsEnum } from 'class-validator';
-import { AppointmentStatus } from '@prisma/client';
+import { AppointmentStatusEnum } from '../../../database/enums/appointment-status.enum';
 
 export class AppointmentQueryDto {
   @IsOptional()
@@ -11,8 +11,8 @@ export class AppointmentQueryDto {
   limit?: number = 10;
 
   @IsOptional()
-  @IsEnum(AppointmentStatus)
-  status?: AppointmentStatus;
+  @IsEnum(AppointmentStatusEnum)
+  status?: AppointmentStatusEnum;
 
   @IsOptional()
   @IsInt()

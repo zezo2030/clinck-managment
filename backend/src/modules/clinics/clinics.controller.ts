@@ -15,7 +15,7 @@ import { UpdateClinicDto } from './dto/update-clinic.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { Role } from '@prisma/client';
+import { RoleEnum } from '../../database/enums/role.enum';
 
 @Controller('clinics')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -23,25 +23,25 @@ export class ClinicsController {
   constructor(private readonly clinicsService: ClinicsService) {}
 
   @Post()
-  @Roles(Role.ADMIN)
+  @Roles(RoleEnum.ADMIN)
   create(@Body() createClinicDto: CreateClinicDto) {
     return this.clinicsService.create(createClinicDto);
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.DOCTOR)
+  @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR)
   findAll() {
     return this.clinicsService.findAll();
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.DOCTOR)
+  @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR)
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.clinicsService.findOne(id);
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN)
+  @Roles(RoleEnum.ADMIN)
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateClinicDto: UpdateClinicDto,
@@ -50,13 +50,13 @@ export class ClinicsController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN)
+  @Roles(RoleEnum.ADMIN)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.clinicsService.remove(id);
   }
 
   @Patch(':id/activate')
-  @Roles(Role.ADMIN)
+  @Roles(RoleEnum.ADMIN)
   setActive(
     @Param('id', ParseIntPipe) id: number,
     @Body('isActive') isActive: boolean,

@@ -17,7 +17,7 @@ import { AppointmentQueryDto } from './dto/appointment-query.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
-import { Role } from '@prisma/client';
+import { RoleEnum } from '../../database/enums/role.enum';
 
 @Controller('appointments')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -25,25 +25,25 @@ export class AppointmentsController {
   constructor(private readonly appointmentsService: AppointmentsService) {}
 
   @Post()
-  @Roles(Role.ADMIN, Role.DOCTOR, Role.PATIENT)
+  @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR, RoleEnum.PATIENT)
   create(@Body() createAppointmentDto: CreateAppointmentDto) {
     return this.appointmentsService.create(createAppointmentDto);
   }
 
   @Get()
-  @Roles(Role.ADMIN, Role.DOCTOR, Role.PATIENT)
+  @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR, RoleEnum.PATIENT)
   findAll(@Query() query: AppointmentQueryDto) {
     return this.appointmentsService.findAll(query);
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN, Role.DOCTOR, Role.PATIENT)
+  @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR, RoleEnum.PATIENT)
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.appointmentsService.findOne(id);
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.DOCTOR)
+  @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR)
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateAppointmentDto: UpdateAppointmentDto,
@@ -52,13 +52,13 @@ export class AppointmentsController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN, Role.DOCTOR)
+  @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.appointmentsService.remove(id);
   }
 
   @Patch(':id/cancel')
-  @Roles(Role.ADMIN, Role.DOCTOR, Role.PATIENT)
+  @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR, RoleEnum.PATIENT)
   cancel(
     @Param('id', ParseIntPipe) id: number,
     @Body('reason') reason?: string,
@@ -67,19 +67,19 @@ export class AppointmentsController {
   }
 
   @Patch(':id/confirm')
-  @Roles(Role.ADMIN, Role.DOCTOR)
+  @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR)
   confirm(@Param('id', ParseIntPipe) id: number) {
     return this.appointmentsService.confirm(id);
   }
 
   @Patch(':id/complete')
-  @Roles(Role.ADMIN, Role.DOCTOR)
+  @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR)
   complete(@Param('id', ParseIntPipe) id: number) {
     return this.appointmentsService.complete(id);
   }
 
   @Get('available-slots/:doctorId')
-  @Roles(Role.ADMIN, Role.DOCTOR, Role.PATIENT)
+  @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR, RoleEnum.PATIENT)
   getAvailableSlots(
     @Param('doctorId', ParseIntPipe) doctorId: number,
     @Query('date') date: string,

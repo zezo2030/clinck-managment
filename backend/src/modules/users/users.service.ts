@@ -1,93 +1,81 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../database/prisma.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '../../database/entities/user.entity';
+import { Profile } from '../../database/entities/profile.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
+    @InjectRepository(Profile) private readonly profileRepository: Repository<Profile>,
+  ) {}
 
   async create(createUserDto: CreateUserDto) {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
-    
-    return this.prisma.user.create({
-      data: {
-        email: createUserDto.email,
-        password: hashedPassword,
-        role: createUserDto.role || 'PATIENT',
-        profile: {
-          create: {
-            firstName: createUserDto.firstName,
-            lastName: createUserDto.lastName,
-            phone: createUserDto.phone,
-            address: createUserDto.address,
-          },
-        },
-      },
-      include: {
-        profile: true,
-      },
+    const user = this.userRepository.create({
+      email: createUserDto.email,
+      password: hashedPassword,
+      role: (createUserDto.role as any) || 'PATIENT',
+      isActive: true,
+    });
+    const savedUser = await this.userRepository.save(user);
+
+    const profile = this.profileRepository.create({
+      userId: savedUser.id,
+      firstName: createUserDto.firstName,
+      lastName: createUserDto.lastName,
+      phone: createUserDto.phone,
+      address: createUserDto.address,
+    });
+    await this.profileRepository.save(profile);
+
+    return this.userRepository.findOne({
+      where: { id: savedUser.id },
+      relations: ['profile'],
     });
   }
 
   async findAll() {
-    return this.prisma.user.findMany({
-      include: {
-        profile: true,
-      },
-    });
+    return this.userRepository.find({ relations: ['profile'] });
   }
 
   async findOne(id: number) {
-    return this.prisma.user.findUnique({
-      where: { id },
-      include: {
-        profile: true,
-      },
-    });
+    return this.userRepository.findOne({ where: { id }, relations: ['profile'] });
   }
 
   async findByEmail(email: string) {
-    return this.prisma.user.findUnique({
-      where: { email },
-      include: {
-        profile: true,
-      },
-    });
+    return this.userRepository.findOne({ where: { email }, relations: ['profile'] });
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const updateData: any = {};
-    
-    if (updateUserDto.email) updateData.email = updateUserDto.email;
-    if (updateUserDto.role) updateData.role = updateUserDto.role;
-    if (updateUserDto.password) {
-      updateData.password = await bcrypt.hash(updateUserDto.password, 10);
+    const partial: Partial<User> = {};
+    if (updateUserDto.email) partial.email = updateUserDto.email;
+    if (updateUserDto.role) partial.role = updateUserDto.role as any;
+    if (updateUserDto.password) partial.password = await bcrypt.hash(updateUserDto.password, 10);
+
+    if (Object.keys(partial).length > 0) {
+      await this.userRepository.update({ id }, partial);
     }
 
-    return this.prisma.user.update({
-      where: { id },
-      data: {
-        ...updateData,
-        profile: updateUserDto.firstName || updateUserDto.lastName || updateUserDto.phone || updateUserDto.address ? {
-          update: {
-            ...(updateUserDto.firstName && { firstName: updateUserDto.firstName }),
-            ...(updateUserDto.lastName && { lastName: updateUserDto.lastName }),
-            ...(updateUserDto.phone && { phone: updateUserDto.phone }),
-            ...(updateUserDto.address && { address: updateUserDto.address }),
-          },
-        } : undefined,
-      },
-      include: {
-        profile: true,
-      },
-    });
+    const profilePartial: Partial<Profile> = {};
+    if (updateUserDto.firstName) profilePartial.firstName = updateUserDto.firstName;
+    if (updateUserDto.lastName) profilePartial.lastName = updateUserDto.lastName;
+    if (updateUserDto.phone) profilePartial.phone = updateUserDto.phone;
+    if (updateUserDto.address) profilePartial.address = updateUserDto.address;
+
+    if (Object.keys(profilePartial).length > 0) {
+      await this.profileRepository.update({ userId: id }, profilePartial);
+    }
+
+    return this.findOne(id);
   }
 
   async remove(id: number) {
-    return this.prisma.user.delete({
-      where: { id },
-    });
+    await this.userRepository.delete({ id });
+    return { id } as any;
   }
 }

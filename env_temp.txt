@@ -1,0 +1,34 @@
+# Environment Configuration
+NODE_ENV=development
+
+# Database Configuration
+DATABASE_URL=postgresql://postgres:clinic_password@localhost:5432/clinic_db
+DB_HOST=localhost
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=clinic_password
+DB_NAME=clinic_db
+
+# Redis Configuration
+REDIS_HOST=localhost
+REDIS_PORT=6380
+REDIS_PASSWORD=
+REDIS_DB=0
+
+# JWT Configuration
+JWT_SECRET=dev_jwt_secret_key_for_clinic_management_system
+JWT_EXPIRES_IN=7d
+
+# Application Configuration
+PORT=3000
+API_PREFIX=api/v1
+
+# Email Configuration (Optional - for future use)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=
+SMTP_PASS=
+SENDGRID_API_KEY=
+SENDGRID_FROM_EMAIL=noreply@clinic.com
+SENDGRID_FROM_NAME=Clinic Management

@@ -1,0 +1,34 @@
+import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { User } from './entities/user.entity';
+import { Profile } from './entities/profile.entity';
+import { Clinic } from './entities/clinic.entity';
+import { Department } from './entities/department.entity';
+import { Doctor } from './entities/doctor.entity';
+import { Schedule } from './entities/schedule.entity';
+import { Rating } from './entities/rating.entity';
+import { Appointment } from './entities/appointment.entity';
+import { WaitingList } from './entities/waiting-list.entity';
+
+export const typeOrmConfig = (env: NodeJS.ProcessEnv): TypeOrmModuleOptions => ({
+  type: 'postgres',
+  host: env.DB_HOST || 'localhost',
+  port: env.DB_PORT ? parseInt(env.DB_PORT, 10) : 5432,
+  username: env.DB_USERNAME || 'postgres',
+  password: env.DB_PASSWORD || 'password',
+  database: env.DB_NAME || 'clinic_db',
+  entities: [
+    User,
+    Profile,
+    Clinic,
+    Department,
+    Doctor,
+    Schedule,
+    Rating,
+    Appointment,
+    WaitingList,
+  ],
+  synchronize: env.NODE_ENV !== 'production',
+  logging: env.NODE_ENV === 'development',
+});
+
+

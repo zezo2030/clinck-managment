@@ -17,7 +17,7 @@
 ### **1. Docker Production Configuration**
 ```dockerfile
 # Dockerfile.prod
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 
 # تثبيت التبعيات
 FROM base AS deps
