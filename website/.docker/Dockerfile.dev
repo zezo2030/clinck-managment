@@ -1,0 +1,16 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# تثبيت التبعيات
+COPY package*.json ./
+RUN npm ci
+
+# نسخ الكود
+COPY . .
+
+# فتح المنفذ
+EXPOSE 3000
+
+# تشغيل التطبيق
+CMD ["npm", "run", "dev"]

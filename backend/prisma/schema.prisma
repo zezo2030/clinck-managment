@@ -1,0 +1,210 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// جدول المستخدمين
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  role      Role     @default(PATIENT)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // العلاقات
+  profile        Profile?
+  doctor         Doctor?
+  patientAppointments Appointment[] @relation("PatientAppointments")
+  doctorAppointments  Appointment[] @relation("DoctorAppointments")
+  waitingListPatient  WaitingList[] @relation("WaitingListPatient")
+  waitingListDoctor   WaitingList[] @relation("WaitingListDoctor")
+
+  @@map("users")
+}
+
+// جدول الملفات الشخصية
+model Profile {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @unique
+  firstName   String
+  lastName    String
+  phone       String?
+  dateOfBirth DateTime?
+  gender      Gender?
+  address     String?
+  avatar      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // العلاقات
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+// Enums
+enum Role {
+  PATIENT
+  DOCTOR
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+// جدول العيادات
+model Clinic {
+  id          Int      @id @default(autoincrement())
+  name        String
+  address     String
+  phone       String
+  email       String
+  workingHours Json
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // العلاقات
+  departments   Department[]
+  appointments  Appointment[]
+  doctors       Doctor[]
+
+  @@map("clinics")
+}
+
+// جدول الأقسام
+model Department {
+  id          Int      @id @default(autoincrement())
+  clinicId    Int
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // العلاقات
+  clinic       Clinic    @relation(fields: [clinicId], references: [id])
+  doctors      Doctor[]
+  appointments Appointment[]
+  waitingList  WaitingList[]
+
+  @@map("departments")
+}
+
+// جدول الأطباء
+model Doctor {
+  id           Int      @id @default(autoincrement())
+  userId       Int      @unique
+  clinicId     Int
+  departmentId Int
+  specialization String
+  licenseNumber String
+  experience   Int
+  consultationFee Decimal @db.Decimal(10, 2)
+  isAvailable  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // العلاقات
+  user         User         @relation(fields: [userId], references: [id])
+  clinic       Clinic       @relation(fields: [clinicId], references: [id])
+  department   Department   @relation(fields: [departmentId], references: [id])
+  schedules    Schedule[]
+  ratings      Rating[]
+
+  @@map("doctors")
+}
+
+// جدول المواعيد
+model Appointment {
+  id            Int            @id @default(autoincrement())
+  patientId     Int
+  doctorId      Int
+  clinicId      Int
+  departmentId  Int
+  appointmentDate DateTime
+  appointmentTime DateTime
+  status        AppointmentStatus @default(SCHEDULED)
+  reason        String?
+  notes         String?
+  isEmergency   Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  // العلاقات
+  patient       User           @relation("PatientAppointments", fields: [patientId], references: [id])
+  doctor        User           @relation("DoctorAppointments", fields: [doctorId], references: [id])
+  clinic        Clinic         @relation(fields: [clinicId], references: [id])
+  department    Department     @relation(fields: [departmentId], references: [id])
+
+  @@map("appointments")
+}
+
+// جدول قائمة الانتظار
+model WaitingList {
+  id           Int      @id @default(autoincrement())
+  patientId    Int
+  doctorId     Int
+  departmentId Int
+  priority     Int      @default(1)
+  notified     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  // العلاقات
+  patient    User       @relation("WaitingListPatient", fields: [patientId], references: [id])
+  doctor     User       @relation("WaitingListDoctor", fields: [doctorId], references: [id])
+  department Department @relation(fields: [departmentId], references: [id])
+
+  @@map("waiting_list")
+}
+
+// جدول الجداول الزمنية
+model Schedule {
+  id        Int      @id @default(autoincrement())
+  doctorId  Int
+  dayOfWeek Int      // 0-6 (الأحد-السبت)
+  startTime DateTime
+  endTime   DateTime
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  // العلاقات
+  doctor Doctor @relation(fields: [doctorId], references: [id])
+
+  @@map("schedules")
+}
+
+// جدول التقييمات
+model Rating {
+  id        Int      @id @default(autoincrement())
+  doctorId  Int
+  patientId Int
+  rating    Int      // 1-5
+  comment   String?
+  createdAt DateTime @default(now())
+
+  // العلاقات
+  doctor Doctor @relation(fields: [doctorId], references: [id])
+
+  @@map("ratings")
+}
+
+// Enums
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}

@@ -1,0 +1,27 @@
+# Dockerfile للتطوير
+FROM node:20-alpine
+
+# تثبيت الحزم المطلوبة
+RUN apk add --no-cache libc6-compat curl
+
+WORKDIR /app
+
+# نسخ ملفات التبعيات
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# تثبيت جميع التبعيات (بما في ذلك dev dependencies)
+RUN npm install --legacy-peer-deps
+
+# نسخ الكود المصدري
+COPY . .
+
+# فتح المنفذ
+EXPOSE 3000
+
+# متغيرات البيئة
+ENV NODE_ENV=development
+ENV PORT=3000
+
+# تشغيل التطبيق في وضع التطوير
+CMD ["npm", "run", "start:dev"]
