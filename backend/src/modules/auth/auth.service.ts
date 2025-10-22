@@ -28,15 +28,26 @@ export class AuthService {
         id: user.id,
         email: user.email,
         role: user.role,
+        name: user.profile ? `${user.profile.firstName} ${user.profile.lastName}`.trim() : undefined,
       },
     };
   }
 
   async register(createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+    const user = await this.usersService.create(createUserDto);
+    return this.formatUserWithFullName(user);
   }
 
   async getProfile(userId: number) {
-    return this.usersService.findOne(userId);
+    const user = await this.usersService.findOne(userId);
+    return this.formatUserWithFullName(user);
+  }
+
+  private formatUserWithFullName(user: any) {
+    if (!user) return null;
+    return {
+      ...user,
+      name: user.profile ? `${user.profile.firstName} ${user.profile.lastName}`.trim() : undefined,
+    };
   }
 }

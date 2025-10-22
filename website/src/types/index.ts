@@ -90,7 +90,8 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
   phone?: string;
@@ -110,7 +111,9 @@ export interface AuthResponse {
 export interface User {
   id: string;
   email: string;
-  name?: string;
+  name?: string;  // الاسم الكامل (firstName + lastName)
+  firstName?: string;
+  lastName?: string;
   role: string;
   phone?: string;
   createdAt?: string;

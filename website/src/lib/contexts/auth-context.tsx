@@ -34,8 +34,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           await authApi.verifyToken();
         } catch (error) {
           // إذا كان التوكن غير صالح، قم بمسح البيانات
+          console.log('Token validation failed, clearing auth data');
           clearAuthData();
         }
+      } else {
+        // إذا لم تكن هناك بيانات محفوظة، تأكد من مسح أي بيانات قديمة
+        clearAuthData();
       }
       setIsLoading(false);
     };
@@ -67,8 +71,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // مسح البيانات من localStorage
   const clearAuthData = () => {
     if (isClient) {
+      // مسح جميع البيانات المتعلقة بالمصادقة
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
+      
+      // مسح أي بيانات أخرى قد تكون محفوظة
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('auth_') || key.startsWith('user_'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
     }
     setToken(null);
     setUser(null);
@@ -106,6 +121,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   // تسجيل الخروج
   const logout = (): void => {
     clearAuthData();
+    
+    // تأكيد إضافي لمسح البيانات
+    if (isClient) {
+      // إرسال event لإعلام المكونات الأخرى بتسجيل الخروج
+      window.dispatchEvent(new CustomEvent('auth:logout'));
+      
+      // مسح sessionStorage أيضاً إذا كان مستخدماً
+      sessionStorage.clear();
+    }
   };
 
   const value: AuthContextType = {

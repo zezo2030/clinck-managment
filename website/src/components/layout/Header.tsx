@@ -48,10 +48,6 @@ export const Header: React.FC = () => {
 
           {/* أزرار العمل */}
           <div className="hidden md:flex items-center space-x-4 space-x-reverse">
-            <div className="flex items-center space-x-2 text-sm text-gray-600">
-              <Phone className="w-4 h-4" />
-              <span>{CONTACT_INFO.phone}</span>
-            </div>
 
             {isAuthenticated ? (
               <div className="relative">

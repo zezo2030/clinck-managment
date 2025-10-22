@@ -10,7 +10,8 @@ import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
 const registerSchema = z.object({
-  name: z.string().min(2, 'الاسم يجب أن يكون حرفين على الأقل'),
+  firstName: z.string().min(2, 'الاسم الأول يجب أن يكون حرفين على الأقل'),
+  lastName: z.string().min(2, 'الاسم الأخير يجب أن يكون حرفين على الأقل'),
   email: z.string().email('يرجى إدخال بريد إلكتروني صحيح'),
   password: z.string().min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل'),
   confirmPassword: z.string(),
@@ -60,20 +61,9 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setError('');
-      const { confirmPassword, name, ...registerData } = data;
+      const { confirmPassword, ...registerData } = data;
 
-      // تقسيم الاسم إلى firstName و lastName
-      const nameParts = name.trim().split(' ');
-      const firstName = nameParts[0] || 'مستخدم';
-      const lastName = nameParts.slice(1).join(' ') || 'جديد';
-
-      const finalData = {
-        ...registerData,
-        firstName,
-        lastName,
-      };
-
-      await registerUser(finalData);
+      await registerUser(registerData);
       onSuccess?.();
     } catch (error: any) {
       setError(error.message || 'حدث خطأ أثناء إنشاء الحساب');
@@ -93,13 +83,22 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
         </div>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <Input
-            label="الاسم الكامل"
-            type="text"
-            placeholder="أدخل اسمك الكامل"
-            {...register('name')}
-            error={errors.name?.message}
-          />
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="الاسم الأول"
+              type="text"
+              placeholder="الاسم الأول"
+              {...register('firstName')}
+              error={errors.firstName?.message}
+            />
+            <Input
+              label="الاسم الأخير"
+              type="text"
+              placeholder="الاسم الأخير"
+              {...register('lastName')}
+              error={errors.lastName?.message}
+            />
+          </div>
 
           <Input
             label="البريد الإلكتروني"

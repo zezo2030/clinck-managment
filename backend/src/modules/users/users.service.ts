@@ -44,11 +44,13 @@ export class UsersService {
   }
 
   async findOne(id: number) {
-    return this.userRepository.findOne({ where: { id }, relations: ['profile'] });
+    const user = await this.userRepository.findOne({ where: { id }, relations: ['profile'] });
+    return this.formatUserWithFullName(user);
   }
 
   async findByEmail(email: string) {
-    return this.userRepository.findOne({ where: { email }, relations: ['profile'] });
+    const user = await this.userRepository.findOne({ where: { email }, relations: ['profile'] });
+    return this.formatUserWithFullName(user);
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
@@ -77,5 +79,13 @@ export class UsersService {
   async remove(id: number) {
     await this.userRepository.delete({ id });
     return { id } as any;
+  }
+
+  private formatUserWithFullName(user: any) {
+    if (!user) return null;
+    return {
+      ...user,
+      name: user.profile ? `${user.profile.firstName} ${user.profile.lastName}`.trim() : undefined,
+    };
   }
 }
