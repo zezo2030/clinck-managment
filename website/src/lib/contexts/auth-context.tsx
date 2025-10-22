@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authApi } from '../api/auth';
+import { useIsClient } from '../utils/client-only';
 import type { AuthContextType, User, LoginRequest, RegisterRequest } from '../../types';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -14,9 +15,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const isClient = useIsClient();
 
   // التحقق من وجود token عند تحميل التطبيق
   useEffect(() => {
+    if (!isClient) return;
+
     const initAuth = async () => {
       const storedToken = localStorage.getItem('auth_token');
       const storedUser = localStorage.getItem('auth_user');
@@ -41,32 +45,31 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       clearAuthData();
     };
 
-    if (typeof window !== 'undefined') {
-      window.addEventListener('auth:logout', handleLogout);
-    }
-
+    window.addEventListener('auth:logout', handleLogout);
     initAuth();
 
     // تنظيف event listener
     return () => {
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('auth:logout', handleLogout);
-      }
+      window.removeEventListener('auth:logout', handleLogout);
     };
-  }, []);
+  }, [isClient]);
 
   // حفظ البيانات في localStorage
   const saveAuthData = (token: string, user: User) => {
-    localStorage.setItem('auth_token', token);
-    localStorage.setItem('auth_user', JSON.stringify(user));
+    if (isClient) {
+      localStorage.setItem('auth_token', token);
+      localStorage.setItem('auth_user', JSON.stringify(user));
+    }
     setToken(token);
     setUser(user);
   };
 
   // مسح البيانات من localStorage
   const clearAuthData = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('auth_user');
+    if (isClient) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+    }
     setToken(null);
     setUser(null);
   };

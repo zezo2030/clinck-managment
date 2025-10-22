@@ -28,7 +28,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ar" dir="rtl">
-      <body className={`${cairo.className} antialiased`}>
+      <body className={`${cairo.className} antialiased`} suppressHydrationWarning={true}>
         <AuthProvider>
           {children}
         </AuthProvider>
