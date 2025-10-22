@@ -3,12 +3,19 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-import { Menu, X, Phone } from 'lucide-react';
+import { Menu, X, Phone, User, LogOut } from 'lucide-react';
 import { NAVIGATION_LINKS, SITE_CONFIG, CONTACT_INFO } from '@/lib/constants';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/lib/contexts/auth-context';
+import { AuthModal } from '@/components/auth';
 
 export const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'register'>('login');
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  const { user, logout, isAuthenticated } = useAuth();
 
   return (
     <header className="bg-white shadow-sm sticky top-0 z-50">
@@ -45,12 +52,77 @@ export const Header: React.FC = () => {
               <Phone className="w-4 h-4" />
               <span>{CONTACT_INFO.phone}</span>
             </div>
-            <Button variant="outline" size="sm">
-              تسجيل الدخول
-            </Button>
-            <Button size="sm">
-              احجز موعد
-            </Button>
+
+            {isAuthenticated ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center space-x-2 space-x-reverse text-gray-700 hover:text-primary-600"
+                >
+                  <div className="w-8 h-8 bg-primary-600 rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-sm font-medium">{user?.name || user?.email}</span>
+                </button>
+
+                {showUserMenu && (
+                  <div className="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50 border">
+                    <div className="px-4 py-2 text-sm text-gray-700 border-b">
+                      <p className="font-medium">{user?.name || user?.email}</p>
+                      <p className="text-gray-500 capitalize">{user?.role?.toLowerCase()}</p>
+                    </div>
+                    <Link
+                      href="/dashboard"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      لوحة التحكم
+                    </Link>
+                    <Link
+                      href="/profile"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      onClick={() => setShowUserMenu(false)}
+                    >
+                      الملف الشخصي
+                    </Link>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setShowUserMenu(false);
+                      }}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      <div className="flex items-center space-x-2 space-x-reverse">
+                        <LogOut className="w-4 h-4" />
+                        <span>تسجيل الخروج</span>
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setAuthModalMode('login');
+                    setShowAuthModal(true);
+                  }}
+                >
+                  تسجيل الدخول
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    setAuthModalMode('register');
+                    setShowAuthModal(true);
+                  }}
+                >
+                  إنشاء حساب
+                </Button>
+              </>
+            )}
           </div>
 
           {/* قائمة الهاتف المحمول */}
@@ -78,18 +150,84 @@ export const Header: React.FC = () => {
                   {link.name}
                 </Link>
               ))}
-              <div className="pt-4 space-y-2">
-                <Button variant="outline" className="w-full">
-                  تسجيل الدخول
-                </Button>
-                <Button className="w-full">
-                  احجز موعد
-                </Button>
+
+              <div className="pt-4 space-y-2 border-t">
+                {isAuthenticated ? (
+                  <>
+                    <div className="px-3 py-2 text-sm text-gray-700">
+                      <p className="font-medium">{user?.name || user?.email}</p>
+                      <p className="text-gray-500 capitalize">{user?.role?.toLowerCase()}</p>
+                    </div>
+                    <Link
+                      href="/dashboard"
+                      className="block px-3 py-2 text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-md"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      لوحة التحكم
+                    </Link>
+                    <Link
+                      href="/profile"
+                      className="block px-3 py-2 text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-md"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      الملف الشخصي
+                    </Link>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsMenuOpen(false);
+                      }}
+                      className="flex items-center space-x-2 space-x-reverse w-full px-3 py-2 text-gray-700 hover:text-primary-600 hover:bg-primary-50 rounded-md"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>تسجيل الخروج</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        setAuthModalMode('login');
+                        setShowAuthModal(true);
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      تسجيل الدخول
+                    </Button>
+                    <Button
+                      className="w-full"
+                      onClick={() => {
+                        setAuthModalMode('register');
+                        setShowAuthModal(true);
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      إنشاء حساب
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        defaultMode={authModalMode}
+      />
+
+      {/* Click outside to close user menu */}
+      {showUserMenu && (
+        <div
+          className="fixed inset-0 z-40"
+          onClick={() => setShowUserMenu(false)}
+        />
+      )}
     </header>
   );
 };

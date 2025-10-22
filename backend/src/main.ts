@@ -23,7 +23,25 @@ async function bootstrap() {
   app.useGlobalFilters(new ValidationExceptionFilter());
 
   // CORS
-  app.enableCors();
+  app.enableCors({
+    origin: [
+      'http://localhost:3001',
+      'http://localhost:3000',
+      'http://127.0.0.1:3001',
+      'http://127.0.0.1:3000',
+      process.env.FRONTEND_URL || 'http://localhost:3001'
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: [
+      'Origin',
+      'X-Requested-With',
+      'Content-Type',
+      'Accept',
+      'Authorization',
+      'Access-Control-Allow-Origin'
+    ],
+  });
 
   // Swagger configuration
   const config = new DocumentBuilder()

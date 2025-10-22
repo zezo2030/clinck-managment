@@ -35,4 +35,8 @@ export class AuthService {
   async register(createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
+
+  async getProfile(userId: number) {
+    return this.usersService.findOne(userId);
+  }
 }

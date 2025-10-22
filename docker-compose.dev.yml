@@ -83,7 +83,7 @@ services:
     container_name: clinic_website_dev
     environment:
       - NODE_ENV=development
-      - NEXT_PUBLIC_API_URL=http://backend-dev:3000
+      - NEXT_PUBLIC_API_URL=http://localhost:3000/api/v1
     volumes:
       - ./website:/app
       - /app/node_modules

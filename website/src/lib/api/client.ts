@@ -1,4 +1,12 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+
+// دالة للحصول على JWT token من localStorage
+const getAuthToken = (): string | null => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('auth_token');
+  }
+  return null;
+};
 
 class ApiClient {
   private baseURL: string;
@@ -12,22 +20,45 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const url = `${this.baseURL}${endpoint}`;
-    
+
+    // الحصول على التوكن
+    const token = getAuthToken();
+
+    // إعداد headers مع إضافة JWT token إذا كان موجوداً
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...options.headers,
+    };
+
+    // إضافة Authorization header إذا كان التوكن موجوداً
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const config: RequestInit = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers,
       ...options,
     };
 
     try {
       const response = await fetch(url, config);
-      
+
+      // التعامل مع حالة 401 (غير مصرح)
+      if (response.status === 401) {
+        // مسح التوكن إذا كان غير صالح
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('auth_user');
+          // إطلاق event للـ logout
+          window.dispatchEvent(new CustomEvent('auth:logout'));
+        }
+        throw new Error('غير مصرح - يرجى تسجيل الدخول مرة أخرى');
+      }
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       return await response.json();
     } catch (error) {
       console.error('API request failed:', error);
