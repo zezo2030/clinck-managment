@@ -83,9 +83,9 @@ export const SpecialtyDetails: React.FC<SpecialtyDetailsProps> = ({ specialtyId 
               <div className="flex flex-col">
                 {/* صورة الطبيب */}
                 <div className="flex items-start gap-4 mb-4">
-                  {doctor.avatar ? (
+                  {(doctor as any).avatar ? (
                     <img 
-                      src={doctor.avatar} 
+                      src={(doctor as any).avatar} 
                       alt={`د. ${doctor.user.profile.firstName} ${doctor.user.profile.lastName}`}
                       className="w-20 h-20 rounded-full object-cover" 
                     />
@@ -104,8 +104,8 @@ export const SpecialtyDetails: React.FC<SpecialtyDetailsProps> = ({ specialtyId 
                     {/* التقييم */}
                     <div className="flex items-center gap-1">
                       <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                      <span className="text-sm font-medium">{doctor.averageRating || 0}</span>
-                      <span className="text-xs text-gray-500">({doctor.totalRatings || 0} تقييم)</span>
+                      <span className="text-sm font-medium">{(doctor as any).averageRating || 0}</span>
+                      <span className="text-xs text-gray-500">({(doctor as any).totalRatings || 0} تقييم)</span>
                     </div>
                   </div>
                 </div>
@@ -114,18 +114,18 @@ export const SpecialtyDetails: React.FC<SpecialtyDetailsProps> = ({ specialtyId 
                 <div className="grid grid-cols-2 gap-3 mb-4 text-sm">
                   <div className="flex items-center gap-2">
                     <Briefcase className="w-4 h-4 text-gray-400" />
-                    <span>{doctor.experience} سنوات خبرة</span>
+                    <span>{(doctor as any).experience || 0} سنوات خبرة</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-gray-400" />
-                    <span>{doctor.consultationFee} ريال</span>
+                    <span>{(doctor as any).consultationFee || 0} ريال</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-gray-400" />
-                    <span className="truncate">{doctor.clinic.name}</span>
+                    <span className="truncate">{(doctor as any).clinic?.name || 'غير محدد'}</span>
                   </div>
                   <div>
-                    {doctor.isAvailable ? (
+                    {(doctor as any).isAvailable ? (
                       <span className="text-green-600 flex items-center gap-1">
                         <CheckCircle className="w-4 h-4" /> متاح
                       </span>

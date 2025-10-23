@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
@@ -11,17 +11,31 @@ import { consultationService } from '@/lib/api/consultations';
 import { appointmentService } from '@/lib/api/appointments';
 import { useAuth } from '@/lib/contexts/auth-context';
 
-export default function NewConsultationPage() {
+function NewConsultationContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user } = useAuth();
   const [selectedAppointment, setSelectedAppointment] = useState<number | null>(null);
   const [consultationType, setConsultationType] = useState<'VIDEO' | 'CHAT'>('VIDEO');
   const [notes, setNotes] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
+  // Get URL parameters
+  const doctorId = searchParams.get('doctorId');
+  const type = searchParams.get('type');
+
+  // Set initial consultation type from URL parameter
+  useEffect(() => {
+    if (type === 'video' || type === 'VIDEO') {
+      setConsultationType('VIDEO');
+    } else if (type === 'chat' || type === 'CHAT') {
+      setConsultationType('CHAT');
+    }
+  }, [type]);
+
   // الحصول على المواعيد المتاحة
   const { data: appointments, isLoading } = useQuery({
-    queryKey: ['appointments', user?.id, user?.role],
+    queryKey: ['appointments', user?.id, user?.role, doctorId],
     queryFn: () => {
       if (user?.role === 'PATIENT') {
         return appointmentService.getPatientAppointments(parseInt(user.id));
@@ -33,9 +47,16 @@ export default function NewConsultationPage() {
   });
 
   // فلترة المواعيد المؤكدة فقط
-  const availableAppointments = appointments?.filter(
+  let availableAppointments = appointments?.filter(
     appointment => appointment.status === 'CONFIRMED'
   ) || [];
+
+  // Filter by doctorId if provided
+  if (doctorId) {
+    availableAppointments = availableAppointments.filter(
+      appointment => appointment.doctor.id === parseInt(doctorId)
+    );
+  }
 
   const handleCreateConsultation = async () => {
     if (!selectedAppointment) {
@@ -257,5 +278,22 @@ export default function NewConsultationPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function NewConsultationPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto mb-4"></div>
+            <p>جاري التحميل...</p>
+          </div>
+        </div>
+      </div>
+    }>
+      <NewConsultationContent />
+    </Suspense>
   );
 }

@@ -64,7 +64,7 @@ export default function SpecialtiesManagementPage() {
                   <span>{specialty.doctors.length} طبيب</span>
                 </div>
               </div>
-              <Badge variant={specialty.isActive ? 'success' : 'secondary'}>
+              <Badge variant={specialty.isActive ? 'default' : 'secondary'}>
                 {specialty.isActive ? 'نشط' : 'غير نشط'}
               </Badge>
             </div>

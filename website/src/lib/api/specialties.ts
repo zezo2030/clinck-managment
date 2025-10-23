@@ -30,22 +30,22 @@ export interface CreateSpecialtyDto {
 export const specialtyService = {
   async getSpecialties(): Promise<Specialty[]> {
     const response = await apiClient.get('/specialties');
-    return response.data;
+    return (response as any).data;
   },
 
   async getSpecialty(id: number): Promise<Specialty> {
     const response = await apiClient.get(`/specialties/${id}`);
-    return response.data;
+    return (response as any).data;
   },
 
   async createSpecialty(data: CreateSpecialtyDto): Promise<Specialty> {
     const response = await apiClient.post('/specialties', data);
-    return response.data;
+    return (response as any).data;
   },
 
   async updateSpecialty(id: number, data: Partial<CreateSpecialtyDto>): Promise<Specialty> {
     const response = await apiClient.put(`/specialties/${id}`, data);
-    return response.data;
+    return (response as any).data;
   },
 
   async deleteSpecialty(id: number): Promise<void> {
@@ -54,6 +54,6 @@ export const specialtyService = {
 
   async getSpecialtyStats() {
     const response = await apiClient.get('/specialties/stats');
-    return response.data;
+    return (response as any).data;
   }
 };

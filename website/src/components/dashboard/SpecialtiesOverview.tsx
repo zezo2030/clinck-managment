@@ -39,7 +39,7 @@ export const SpecialtiesOverview: React.FC = () => {
                   )}
                   <h3 className="font-semibold text-sm">{specialty.name}</h3>
                 </div>
-                <Badge variant={specialty.isActive ? 'success' : 'secondary'}>
+                <Badge variant={specialty.isActive ? 'default' : 'secondary'}>
                   {specialty.isActive ? 'نشط' : 'غير نشط'}
                 </Badge>
               </div>

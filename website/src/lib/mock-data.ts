@@ -1,4 +1,4 @@
-import { Service, Doctor, Clinic, BlogPost, FAQ, PricingTier } from '@/types';
+import { Service, Doctor, BlogPost, FAQ, PricingTier } from '@/types';
 
 export const mockServices: Service[] = [
   {
