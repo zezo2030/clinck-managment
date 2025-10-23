@@ -2,6 +2,7 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Profile } from './entities/profile.entity';
 import { Clinic } from './entities/clinic.entity';
+import { Specialty } from './entities/specialty.entity';
 import { Department } from './entities/department.entity';
 import { Doctor } from './entities/doctor.entity';
 import { Schedule } from './entities/schedule.entity';
@@ -22,6 +23,7 @@ export const typeOrmConfig = (env: NodeJS.ProcessEnv): TypeOrmModuleOptions => (
     User,
     Profile,
     Clinic,
+    Specialty,
     Department,
     Doctor,
     Schedule,

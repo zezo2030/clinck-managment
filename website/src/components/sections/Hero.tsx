@@ -47,8 +47,8 @@ export const Hero: React.FC = () => {
                 <div className="text-sm text-gray-600">مريض راضٍ</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-primary-600">{APP_STATS.clinics}+</div>
-                <div className="text-sm text-gray-600">عيادة شريكة</div>
+                <div className="text-3xl font-bold text-primary-600">{APP_STATS.specialties}+</div>
+                <div className="text-sm text-gray-600">تخصص طبي</div>
               </div>
             </div>
           </div>

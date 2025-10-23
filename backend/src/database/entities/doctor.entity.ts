@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToOne, OneToMany, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
 import { User } from './user.entity';
 import { Clinic } from './clinic.entity';
+import { Specialty } from './specialty.entity';
 import { Department } from './department.entity';
 import { Schedule } from './schedule.entity';
 import { Rating } from './rating.entity';
@@ -23,6 +24,13 @@ export class Doctor {
   @ManyToOne(() => Clinic, (clinic) => clinic.doctors)
   @JoinColumn({ name: 'clinicId' })
   clinic: Clinic;
+
+  @Column()
+  specialtyId: number;
+
+  @ManyToOne(() => Specialty, (specialty) => specialty.doctors)
+  @JoinColumn({ name: 'specialtyId' })
+  specialty: Specialty;
 
   @Column()
   departmentId: number;

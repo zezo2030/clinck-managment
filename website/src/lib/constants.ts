@@ -17,7 +17,7 @@ export const NAVIGATION_LINKS = [
   { name: 'الرئيسية', href: '/' },
   { name: 'الخدمات', href: '/services' },
   { name: 'الأطباء', href: '/doctors' },
-  { name: 'العيادات', href: '/clinics' },
+  { name: 'التخصصات', href: '/specialties' },
   { name: 'الأسعار', href: '/pricing' },
   { name: 'من نحن', href: '/about' },
   { name: 'تواصل معنا', href: '/contact' },
@@ -61,5 +61,5 @@ export const FOOTER_LINKS = {
 export const APP_STATS = {
   doctors: 500,
   patients: 10000,
-  clinics: 50,
+  specialties: 11,
 } as const;

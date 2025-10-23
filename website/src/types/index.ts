@@ -27,22 +27,24 @@ export interface Doctor {
   isAvailable: boolean;
 }
 
-export interface Clinic {
-  id: string;
+
+export interface Specialty {
+  id: number;
   name: string;
-  address: string;
-  city: string;
-  phone: string;
-  email: string;
-  image: string;
-  specialties: string[];
-  rating: number;
-  openingHours: {
-    weekdays: string;
-    weekends: string;
-  };
-  facilities: string[];
-  isVerified: boolean;
+  description?: string;
+  icon?: string;
+  services: string[];
+  isActive: boolean;
+  doctors: {
+    id: number;
+    specialization: string;
+    user: {
+      profile: {
+        firstName: string;
+        lastName: string;
+      };
+    };
+  }[];
 }
 
 export interface BlogPost {
@@ -131,3 +133,76 @@ export interface AuthContextType {
 }
 
 export type UserRole = 'PATIENT' | 'DOCTOR' | 'ADMIN';
+
+// Doctor Profile Types
+export interface Rating {
+  id: number;
+  doctorId: number;
+  patientId: number;
+  rating: number; // 1-5
+  comment?: string;
+  createdAt: Date;
+  patient?: {
+    id: number;
+    profile: {
+      firstName: string;
+      lastName: string;
+      avatar?: string;
+    };
+  };
+}
+
+export interface Schedule {
+  id: number;
+  doctorId: number;
+  dayOfWeek: number; // 0-6
+  startTime: Date;
+  endTime: Date;
+  isActive: boolean;
+}
+
+export interface DoctorProfile {
+  id: number;
+  userId: number;
+  specialization: string;
+  licenseNumber: string;
+  experience: number;
+  consultationFee: string;
+  isAvailable: boolean;
+  user: {
+    id: number;
+    email: string;
+    profile: {
+      firstName: string;
+      lastName: string;
+      phone?: string;
+      avatar?: string;
+    };
+  };
+  clinic: { 
+    id: number; 
+    name: string; 
+    address?: string;
+  };
+  specialty: { 
+    id: number; 
+    name: string; 
+    icon?: string;
+  };
+  department: { 
+    id: number; 
+    name: string;
+  };
+  schedules: Schedule[];
+  ratings: Rating[];
+  averageRating?: number;
+  totalRatings?: number;
+}
+
+export interface DoctorDetailed extends DoctorProfile {
+  // Extended interface for detailed doctor information
+  qualifications?: string[];
+  certifications?: string[];
+  languages?: string[];
+  bio?: string;
+}

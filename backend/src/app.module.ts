@@ -6,7 +6,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { HealthModule } from './health/health.module';
 import { ClinicsModule } from './modules/clinics/clinics.module';
-import { DepartmentsModule } from './modules/departments/departments.module';
+import { SpecialtiesModule } from './modules/specialties/specialties.module';
 import { DoctorsModule } from './modules/doctors/doctors.module';
 import { AppointmentsModule } from './modules/appointments/appointments.module';
 import { WaitingListModule } from './modules/waiting-list/waiting-list.module';
@@ -26,6 +26,7 @@ import agoraConfig from './config/agora.config';
 import { typeOrmConfig } from './database/typeorm.config';
 import { Appointment } from './database/entities/appointment.entity';
 import { WaitingList } from './database/entities/waiting-list.entity';
+import { Department } from './database/entities/department.entity';
 
 @Module({
   imports: [
@@ -35,13 +36,13 @@ import { WaitingList } from './database/entities/waiting-list.entity';
     }),
     TypeOrmModule.forRoot(typeOrmConfig(process.env)),
     // Repositories needed by schedulers
-    TypeOrmModule.forFeature([Appointment, WaitingList]),
+    TypeOrmModule.forFeature([Appointment, WaitingList, Department]),
     ScheduleModule.forRoot(),
     AuthModule,
     UsersModule,
     HealthModule,
     ClinicsModule,
-    DepartmentsModule,
+    SpecialtiesModule,
     DoctorsModule,
     AppointmentsModule,
     WaitingListModule,

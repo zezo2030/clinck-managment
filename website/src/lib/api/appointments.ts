@@ -5,7 +5,7 @@ export interface Appointment {
   patientId: number;
   doctorId: number;
   clinicId: number;
-  departmentId: number;
+  specialtyId: number;
   appointmentDate: string;
   appointmentTime: string;
   status: 'SCHEDULED' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'NO_SHOW';
@@ -38,7 +38,7 @@ export interface Appointment {
     address: string;
     phone?: string;
   };
-  department: {
+  specialty: {
     id: number;
     name: string;
     description?: string;
@@ -48,7 +48,7 @@ export interface Appointment {
 export interface CreateAppointmentDto {
   doctorId: number;
   clinicId: number;
-  departmentId: number;
+  specialtyId: number;
   appointmentDate: string;
   appointmentTime: string;
   reason?: string;

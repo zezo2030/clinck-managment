@@ -8,6 +8,7 @@ import { StatsCard } from '@/components/dashboard/StatsCard';
 import { UpcomingAppointments } from '@/components/dashboard/UpcomingAppointments';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
+import { SpecialtiesOverview } from '@/components/dashboard/SpecialtiesOverview';
 import { Calendar, MessageSquare, Bell, TrendingUp, Video, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { consultationService } from '@/lib/api/consultations';
@@ -129,6 +130,11 @@ export default function DashboardPage() {
             <div>
               <QuickActions />
             </div>
+          </div>
+
+          {/* التخصصات المتاحة */}
+          <div className="mt-8">
+            <SpecialtiesOverview />
           </div>
 
           {/* النشاط الأخير */}

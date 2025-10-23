@@ -13,7 +13,8 @@ import {
   Bell,
   Heart,
   Video,
-  Users
+  Users,
+  Stethoscope
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -58,18 +59,18 @@ export const QuickActions: React.FC<QuickActionsProps> = ({ className }) => {
       onClick: () => router.push('/appointments'),
     },
     {
+      id: 'specialties',
+      label: 'التخصصات',
+      icon: Stethoscope,
+      color: 'green',
+      onClick: () => router.push('/specialties'),
+    },
+    {
       id: 'consultations',
       label: 'الاستشارات',
       icon: Video,
-      color: 'green',
-      onClick: () => router.push('/consultations'),
-    },
-    {
-      id: 'create-consultation',
-      label: 'استشارة جديدة',
-      icon: Users,
       color: 'purple',
-      onClick: () => router.push('/consultations/new'),
+      onClick: () => router.push('/consultations'),
     },
     {
       id: 'profile',

@@ -6,6 +6,8 @@ import { Consultation } from './entities/consultation.entity';
 import { Message } from './entities/message.entity';
 import { Appointment } from './entities/appointment.entity';
 import { User } from './entities/user.entity';
+import { Specialty } from './entities/specialty.entity';
+import { Department } from './entities/department.entity';
 
 @Module({
   imports: [
@@ -15,7 +17,7 @@ import { User } from './entities/user.entity';
       inject: [ConfigService],
       useFactory: (config: ConfigService) => typeOrmConfig(process.env),
     }),
-    TypeOrmModule.forFeature([Consultation, Message, Appointment, User]),
+    TypeOrmModule.forFeature([Consultation, Message, Appointment, User, Specialty, Department]),
   ],
   exports: [TypeOrmModule],
 })

@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
 import { User } from './user.entity';
 import { Clinic } from './clinic.entity';
+import { Specialty } from './specialty.entity';
 import { Department } from './department.entity';
 import { AppointmentStatusEnum } from '../enums/appointment-status.enum';
 import { Consultation } from './consultation.entity';
@@ -30,6 +31,13 @@ export class Appointment {
   @ManyToOne(() => Clinic, (clinic) => clinic.appointments)
   @JoinColumn({ name: 'clinicId' })
   clinic: Clinic;
+
+  @Column()
+  specialtyId: number;
+
+  @ManyToOne(() => Specialty, (specialty) => specialty.appointments)
+  @JoinColumn({ name: 'specialtyId' })
+  specialty: Specialty;
 
   @Column()
   departmentId: number;
