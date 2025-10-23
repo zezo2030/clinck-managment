@@ -39,7 +39,7 @@ export class DoctorsService {
   async findOne(id: number) {
     return this.doctorRepository.findOne({
       where: { id },
-      relations: ['user', 'user.profile', 'clinic', 'department', 'schedules'],
+      relations: ['user', 'user.profile', 'clinic', 'department', 'specialty', 'schedules', 'ratings', 'ratings.patient', 'ratings.patient.profile'],
     });
   }
 

@@ -39,8 +39,10 @@ async function bootstrap() {
       'Content-Type',
       'Accept',
       'Authorization',
-      'Access-Control-Allow-Origin'
+      'Cookie',
+      'Set-Cookie'
     ],
+    exposedHeaders: ['Set-Cookie'],
   });
 
   // Swagger configuration
@@ -53,6 +55,17 @@ async function bootstrap() {
   
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
+
+  // تشغيل الـ seed في بيئة التطوير - مؤقتاً معطل
+  // if (process.env.NODE_ENV === 'development') {
+  //   try {
+  //     const dataSource = await getDataSource();
+  //     await seedDatabase(dataSource);
+  //     console.log('✅ Database seeded successfully');
+  //   } catch (error) {
+  //     console.log('⚠️ Seed data already exists or error occurred:', error.message);
+  //   }
+  // }
 
   const port = process.env.PORT || 3000;
   await app.listen(port);

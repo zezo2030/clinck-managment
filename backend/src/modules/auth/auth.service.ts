@@ -43,6 +43,16 @@ export class AuthService {
     return this.formatUserWithFullName(user);
   }
 
+  async generateAdminToken(user: any): Promise<string> {
+    const payload = { 
+      email: user.email, 
+      sub: user.id, 
+      role: user.role,
+      type: 'admin' // تمييز توكن الأدمن
+    };
+    return this.jwtService.sign(payload);
+  }
+
   private formatUserWithFullName(user: any) {
     if (!user) return null;
     return {

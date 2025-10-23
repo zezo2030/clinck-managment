@@ -4,6 +4,9 @@ import { Profile } from './profile.entity';
 import { Doctor } from './doctor.entity';
 import { Appointment } from './appointment.entity';
 import { WaitingList } from './waiting-list.entity';
+import { Notification } from './notification.entity';
+import { ActivityLog } from './activity-log.entity';
+import { Rating } from './rating.entity';
 
 @Entity('users')
 export class User {
@@ -46,6 +49,15 @@ export class User {
 
   @OneToMany(() => WaitingList, (waiting) => waiting.doctor)
   waitingListDoctor: WaitingList[];
+
+  @OneToMany(() => Notification, (notification) => notification.user)
+  notifications: Notification[];
+
+  @OneToMany(() => ActivityLog, (activityLog) => activityLog.user)
+  activityLogs: ActivityLog[];
+
+  @OneToMany(() => Rating, (rating) => rating.patient)
+  ratings: Rating[];
 }
 
 

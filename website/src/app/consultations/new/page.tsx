@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { ArrowLeft, Video, MessageSquare, Calendar, Clock, User } from 'lucide-react';
 import { consultationService } from '@/lib/api/consultations';
-import { appointmentService } from '@/lib/api/appointments';
+import { appointmentsService } from '@/lib/api/appointments';
 import { useAuth } from '@/lib/contexts/auth-context';
 
 function NewConsultationContent() {
@@ -38,11 +38,11 @@ function NewConsultationContent() {
     queryKey: ['appointments', user?.id, user?.role, doctorId],
     queryFn: () => {
       if (user?.role === 'PATIENT') {
-        return appointmentService.getPatientAppointments(parseInt(user.id));
+        return appointmentsService.getPatientAppointments(parseInt(user.id));
       } else if (user?.role === 'DOCTOR') {
-        return appointmentService.getDoctorAppointments(parseInt(user.id));
+        return appointmentsService.getDoctorAppointments(parseInt(user.id));
       }
-      return appointmentService.getAppointments();
+      return appointmentsService.getAppointments();
     },
   });
 
@@ -54,7 +54,7 @@ function NewConsultationContent() {
   // Filter by doctorId if provided
   if (doctorId) {
     availableAppointments = availableAppointments.filter(
-      appointment => appointment.doctor.id === parseInt(doctorId)
+      appointment => appointment.doctor?.id === parseInt(doctorId)
     );
   }
 
@@ -157,8 +157,8 @@ function NewConsultationContent() {
                           <User className="w-4 h-4 text-gray-600" />
                           <span className="font-medium">
                             {user?.role === 'PATIENT' 
-                              ? `${appointment.doctor.profile.firstName} ${appointment.doctor.profile.lastName}`
-                              : `${appointment.patient.profile.firstName} ${appointment.patient.profile.lastName}`
+                              ? `${appointment.doctor?.user?.profile?.firstName || ''} ${appointment.doctor?.user?.profile?.lastName || ''}`
+                              : `${appointment.patient?.profile?.firstName || ''} ${appointment.patient?.profile?.lastName || ''}`
                             }
                           </span>
                         </div>

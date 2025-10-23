@@ -26,19 +26,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const storedUser = localStorage.getItem('auth_user');
 
       if (storedToken && storedUser) {
-        setToken(storedToken);
         try {
           const userData = JSON.parse(storedUser);
+          setToken(storedToken);
           setUser(userData);
           // التحقق من صحة التوكن
           await authApi.verifyToken();
         } catch (error) {
-          // إذا كان التوكن غير صالح، قم بمسح البيانات
-          console.log('Token validation failed, clearing auth data');
+          console.log('Token validation failed:', error);
           clearAuthData();
         }
       } else {
-        // إذا لم تكن هناك بيانات محفوظة، تأكد من مسح أي بيانات قديمة
         clearAuthData();
       }
       setIsLoading(false);
@@ -58,22 +56,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, [isClient]);
 
-  // حفظ البيانات في localStorage
+  // حفظ البيانات في localStorage وضبط cookie للتزامن
   const saveAuthData = (token: string, user: User) => {
     if (isClient) {
       localStorage.setItem('auth_token', token);
       localStorage.setItem('auth_user', JSON.stringify(user));
+      
+      // ضبط cookie للتزامن مع الباك إند
+      document.cookie = `auth_token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
     }
     setToken(token);
     setUser(user);
   };
 
-  // مسح البيانات من localStorage
+  // مسح البيانات من localStorage وcookies
   const clearAuthData = () => {
     if (isClient) {
       // مسح جميع البيانات المتعلقة بالمصادقة
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
+      
+      // مسح cookie أيضاً
+      document.cookie = 'auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
       
       // مسح أي بيانات أخرى قد تكون محفوظة
       const keysToRemove = [];

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { getDoctorById } from '@/lib/api/doctors';
+import { doctorsService } from '@/lib/api/doctors';
 import { DoctorProfile as DoctorProfileType } from '@/types';
 import { 
   Star, 
@@ -38,21 +38,25 @@ export const DoctorProfile: React.FC<DoctorProfileProps> = ({ doctorId }) => {
     const fetchDoctor = async () => {
       try {
         setLoading(true);
-        const doctorData = await getDoctorById(doctorId);
+        setError(null);
+        const doctorData = await doctorsService.getDoctorById(doctorId);
         if (!doctorData) {
           setError('الطبيب غير موجود');
           return;
         }
-        setDoctor(doctorData);
+        console.log('Doctor data received:', doctorData);
+        setDoctor(doctorData as any);
       } catch (err) {
-        setError('حدث خطأ في تحميل بيانات الطبيب');
         console.error('Error fetching doctor:', err);
+        setError('حدث خطأ في تحميل بيانات الطبيب');
       } finally {
         setLoading(false);
       }
     };
 
-    fetchDoctor();
+    if (doctorId) {
+      fetchDoctor();
+    }
   }, [doctorId]);
 
   if (loading) {

@@ -37,6 +37,7 @@ class ApiClient {
 
     const config: RequestInit = {
       headers,
+      credentials: 'include', // مهم لإرسال واستقبال cookies
       ...options,
     };
 
@@ -56,7 +57,9 @@ class ApiClient {
       }
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('API Error:', response.status, errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
 
       return await response.json();
@@ -80,6 +83,13 @@ class ApiClient {
   async put<T>(endpoint: string, data: any): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async patch<T>(endpoint: string, data: any): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
       body: JSON.stringify(data),
     });
   }

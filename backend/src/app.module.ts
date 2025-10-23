@@ -14,6 +14,9 @@ import { ConsultationsModule } from './modules/consultations/consultations.modul
 import { MessagesModule } from './modules/messages/messages.module';
 import { AgoraModule } from './modules/agora/agora.module';
 import { FileUploadModule } from './modules/file-upload/file-upload.module';
+import { AdminModule } from './modules/admin/admin.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { ActivityLogModule } from './modules/activity-log/activity-log.module';
 import { AppointmentReminderScheduler } from './common/schedulers/appointment-reminder.scheduler';
 import { WaitingListScheduler } from './common/schedulers/waiting-list.scheduler';
 import { ConsultationGateway } from './common/gateways/consultation.gateway';
@@ -50,6 +53,9 @@ import { Department } from './database/entities/department.entity';
     MessagesModule,
     AgoraModule,
     FileUploadModule,
+    AdminModule,
+    NotificationsModule,
+    ActivityLogModule,
   ],
   providers: [
     AppointmentReminderScheduler, 

@@ -6,49 +6,54 @@ export interface Appointment {
   doctorId: number;
   clinicId: number;
   specialtyId: number;
+  departmentId: number;
   appointmentDate: string;
   appointmentTime: string;
-  status: 'SCHEDULED' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' | 'NO_SHOW';
+  status: 'SCHEDULED' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
   reason?: string;
   notes?: string;
   isEmergency: boolean;
   createdAt: string;
   updatedAt: string;
-  patient: {
+  patient?: {
     id: number;
-    email: string;
     profile: {
       firstName: string;
       lastName: string;
-      phone?: string;
+      phone: string;
     };
   };
-  doctor: {
+  doctor?: {
     id: number;
-    email: string;
-    profile: {
-      firstName: string;
-      lastName: string;
-      phone?: string;
+    user: {
+      profile: {
+        firstName: string;
+        lastName: string;
+      };
     };
+    specialization: string;
   };
-  clinic: {
+  clinic?: {
     id: number;
     name: string;
     address: string;
-    phone?: string;
   };
-  specialty: {
+  specialty?: {
     id: number;
     name: string;
-    description?: string;
+  };
+  department?: {
+    id: number;
+    name: string;
   };
 }
 
 export interface CreateAppointmentDto {
+  patientId: number;
   doctorId: number;
   clinicId: number;
   specialtyId: number;
+  departmentId: number;
   appointmentDate: string;
   appointmentTime: string;
   reason?: string;
@@ -56,57 +61,103 @@ export interface CreateAppointmentDto {
   isEmergency?: boolean;
 }
 
-export const appointmentService = {
-  // الحصول على جميع المواعيد
-  async getAppointments(): Promise<Appointment[]> {
-    const response = await apiClient.get('/appointments');
-    return (response as any).data;
+export interface UpdateAppointmentDto {
+  appointmentDate?: string;
+  appointmentTime?: string;
+  status?: 'SCHEDULED' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
+  reason?: string;
+  notes?: string;
+  isEmergency?: boolean;
+}
+
+export interface AppointmentsQuery {
+  page?: number;
+  limit?: number;
+  status?: string;
+  doctorId?: number;
+  patientId?: number;
+  clinicId?: number;
+  date?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export const appointmentsService = {
+  // جلب جميع المواعيد
+  getAppointments: (query: AppointmentsQuery = {}): Promise<Appointment[]> => {
+    const params = new URLSearchParams();
+    if (query.page) params.append('page', query.page.toString());
+    if (query.limit) params.append('limit', query.limit.toString());
+    if (query.status) params.append('status', query.status);
+    if (query.doctorId) params.append('doctorId', query.doctorId.toString());
+    if (query.patientId) params.append('patientId', query.patientId.toString());
+    if (query.clinicId) params.append('clinicId', query.clinicId.toString());
+    if (query.date) params.append('date', query.date);
+    if (query.startDate) params.append('startDate', query.startDate);
+    if (query.endDate) params.append('endDate', query.endDate);
+
+    return apiClient.get(`/appointments?${params.toString()}`);
   },
 
-  // الحصول على مواعيد المريض
-  async getPatientAppointments(patientId: number): Promise<Appointment[]> {
-    const response = await apiClient.get(`/appointments/patient/${patientId}`);
-    return (response as any).data;
+  // جلب مواعيد المريض
+  getPatientAppointments: (patientId: number): Promise<Appointment[]> => {
+    return apiClient.get(`/appointments?patientId=${patientId}`);
   },
 
-  // الحصول على مواعيد الطبيب
-  async getDoctorAppointments(doctorId: number): Promise<Appointment[]> {
-    const response = await apiClient.get(`/appointments/doctor/${doctorId}`);
-    return (response as any).data;
+  // جلب مواعيد الطبيب
+  getDoctorAppointments: (doctorId: number): Promise<Appointment[]> => {
+    return apiClient.get(`/appointments?doctorId=${doctorId}`);
   },
 
-  // الحصول على موعد محدد
-  async getAppointment(id: number): Promise<Appointment> {
-    const response = await apiClient.get(`/appointments/${id}`);
-    return (response as any).data;
+  // جلب موعد واحد
+  getAppointment: (id: number): Promise<Appointment> => {
+    return apiClient.get(`/appointments/${id}`);
   },
 
   // إنشاء موعد جديد
-  async createAppointment(data: CreateAppointmentDto): Promise<Appointment> {
-    const response = await apiClient.post('/appointments', data);
-    return (response as any).data;
+  createAppointment: (appointmentData: CreateAppointmentDto): Promise<Appointment> => {
+    return apiClient.post('/appointments', appointmentData);
   },
 
   // تحديث موعد
-  async updateAppointment(id: number, data: Partial<CreateAppointmentDto>): Promise<Appointment> {
-    const response = await apiClient.put(`/appointments/${id}`, data);
-    return (response as any).data;
-  },
-
-  // تأكيد موعد
-  async confirmAppointment(id: number): Promise<Appointment> {
-    const response = await apiClient.put(`/appointments/${id}/confirm`, {});
-    return (response as any).data;
-  },
-
-  // إلغاء موعد
-  async cancelAppointment(id: number): Promise<Appointment> {
-    const response = await apiClient.put(`/appointments/${id}/cancel`, {});
-    return (response as any).data;
+  updateAppointment: (id: number, appointmentData: UpdateAppointmentDto): Promise<Appointment> => {
+    return apiClient.patch(`/appointments/${id}`, appointmentData);
   },
 
   // حذف موعد
-  async deleteAppointment(id: number): Promise<void> {
-    await apiClient.delete(`/appointments/${id}`);
+  deleteAppointment: (id: number): Promise<{ success: boolean }> => {
+    return apiClient.delete(`/appointments/${id}`);
+  },
+
+  // تأكيد موعد
+  confirmAppointment: (id: number): Promise<Appointment> => {
+    return apiClient.patch(`/appointments/${id}/confirm`, {});
+  },
+
+  // إلغاء موعد
+  cancelAppointment: (id: number, reason?: string): Promise<Appointment> => {
+    return apiClient.patch(`/appointments/${id}/cancel`, { reason });
+  },
+
+  // إكمال موعد
+  completeAppointment: (id: number): Promise<Appointment> => {
+    return apiClient.patch(`/appointments/${id}/complete`, {});
+  },
+
+  // جلب الأوقات المتاحة للطبيب
+  getAvailableSlots: (doctorId: number, date: string): Promise<string[]> => {
+    return apiClient.get(`/appointments/available-slots/${doctorId}?date=${date}`);
+  },
+
+  // إحصائيات المواعيد
+  getAppointmentsStats: (): Promise<{
+    totalAppointments: number;
+    appointmentsByStatus: Record<string, number>;
+    appointmentsByClinic: Record<string, number>;
+    appointmentsBySpecialty: Record<string, number>;
+    todayAppointments: number;
+    upcomingAppointments: number;
+  }> => {
+    return apiClient.get('/appointments/stats');
   },
 };

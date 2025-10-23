@@ -4,7 +4,7 @@ import React from 'react';
 import { Card } from '@/components/ui/Card';
 import { Star } from 'lucide-react';
 import { Rating } from '@/types';
-import { getRatingDistribution } from '@/lib/api/doctors';
+import { doctorsService } from '@/lib/api/doctors';
 
 interface RatingSummaryProps {
   ratings: Rating[];
@@ -15,7 +15,7 @@ export const RatingSummary: React.FC<RatingSummaryProps> = ({ ratings }) => {
     ? ratings.reduce((sum, rating) => sum + rating.rating, 0) / ratings.length 
     : 0;
   
-  const distribution = getRatingDistribution(ratings);
+  const distribution = doctorsService.getRatingDistribution(ratings);
   const totalRatings = ratings.length;
 
   const renderStars = (rating: number) => {

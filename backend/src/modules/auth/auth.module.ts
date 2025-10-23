@@ -9,6 +9,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
+import { AdminAuthGuard } from './guards/admin-auth.guard';
 import { DatabaseModule } from '../../database/database.module';
 
 @Module({
@@ -27,8 +28,8 @@ import { DatabaseModule } from '../../database/database.module';
     UsersModule,
     DatabaseModule,
   ],
-  providers: [AuthService, JwtStrategy, LocalStrategy, JwtAuthGuard, RolesGuard],
+  providers: [AuthService, JwtStrategy, LocalStrategy, JwtAuthGuard, RolesGuard, AdminAuthGuard],
   controllers: [AuthController],
-  exports: [AuthService, JwtAuthGuard, RolesGuard],
+  exports: [AuthService, JwtAuthGuard, RolesGuard, AdminAuthGuard, JwtModule],
 })
 export class AuthModule {}

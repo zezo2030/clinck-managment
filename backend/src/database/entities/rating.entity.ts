@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, JoinColumn } from 'typeorm';
 import { Doctor } from './doctor.entity';
+import { User } from './user.entity';
 
 @Entity('ratings')
 export class Rating {
@@ -15,6 +16,10 @@ export class Rating {
 
   @Column('int')
   patientId: number;
+
+  @ManyToOne(() => User, (user) => user.ratings)
+  @JoinColumn({ name: 'patientId' })
+  patient: User;
 
   @Column('int')
   rating: number; // 1-5
