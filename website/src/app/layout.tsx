@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Cairo } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/lib/contexts/auth-context';
+import { QueryProvider } from '@/lib/providers/query-client-provider';
 
 const cairo = Cairo({
   subsets: ['arabic'],
@@ -29,9 +30,11 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl">
       <body className={`${cairo.className} antialiased`} suppressHydrationWarning={true}>
-        <AuthProvider>
-          {children}
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            {children}
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   );

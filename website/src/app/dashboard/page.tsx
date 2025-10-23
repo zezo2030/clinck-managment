@@ -8,10 +8,25 @@ import { StatsCard } from '@/components/dashboard/StatsCard';
 import { UpcomingAppointments } from '@/components/dashboard/UpcomingAppointments';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
-import { Calendar, MessageSquare, Bell, TrendingUp } from 'lucide-react';
+import { Calendar, MessageSquare, Bell, TrendingUp, Video, Users } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { consultationService } from '@/lib/api/consultations';
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
+
+  // الحصول على الاستشارات
+  const { data: consultations } = useQuery({
+    queryKey: ['consultations', user?.id, user?.role],
+    queryFn: () => {
+      if (user?.role === 'PATIENT') {
+        return consultationService.getConsultations(parseInt(user.id));
+      } else if (user?.role === 'DOCTOR') {
+        return consultationService.getConsultations(undefined, parseInt(user.id));
+      }
+      return consultationService.getConsultations();
+    },
+  });
 
   // بيانات وهمية للعرض
   const mockAppointments = [
@@ -81,25 +96,25 @@ export default function DashboardPage() {
               trend="+1 هذا الأسبوع"
             />
             <StatsCard
+              title="الاستشارات النشطة"
+              value={consultations?.filter(c => c.status === 'IN_PROGRESS').length || 0}
+              icon={Video}
+              color="green"
+              trend="جارية الآن"
+            />
+            <StatsCard
               title="الرسائل الجديدة"
               value="5"
               icon={MessageSquare}
-              color="green"
+              color="orange"
               trend="+2 اليوم"
             />
             <StatsCard
-              title="الإشعارات"
-              value="12"
-              icon={Bell}
-              color="orange"
-              trend="+3 هذا الأسبوع"
-            />
-            <StatsCard
-              title="نقاط الصحة"
-              value="850"
-              icon={TrendingUp}
+              title="الاستشارات المكتملة"
+              value={consultations?.filter(c => c.status === 'COMPLETED').length || 0}
+              icon={Users}
               color="purple"
-              trend="+50 هذا الشهر"
+              trend="هذا الشهر"
             />
           </div>
 

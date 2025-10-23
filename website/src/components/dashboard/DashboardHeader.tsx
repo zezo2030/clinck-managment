@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { User } from '@/lib/contexts/auth-context';
+import { User } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Bell, Settings, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';

@@ -27,6 +27,8 @@ model User {
   doctorAppointments  Appointment[] @relation("DoctorAppointments")
   waitingListPatient  WaitingList[] @relation("WaitingListPatient")
   waitingListDoctor   WaitingList[] @relation("WaitingListDoctor")
+  patientRatings      Rating[]       @relation("PatientRatings")
+  sentMessages       Message[]      @relation("MessageSender")
 
   @@map("users")
 }
@@ -147,6 +149,8 @@ model Appointment {
   doctor        User           @relation("DoctorAppointments", fields: [doctorId], references: [id])
   clinic        Clinic         @relation(fields: [clinicId], references: [id])
   department    Department     @relation(fields: [departmentId], references: [id])
+  consultation  Consultation?
+  ratings       Rating[]
 
   @@map("appointments")
 }
@@ -187,17 +191,58 @@ model Schedule {
 
 // جدول التقييمات
 model Rating {
-  id        Int      @id @default(autoincrement())
-  doctorId  Int
-  patientId Int
-  rating    Int      // 1-5
-  comment   String?
-  createdAt DateTime @default(now())
+  id            Int      @id @default(autoincrement())
+  appointmentId Int      @unique
+  patientId     Int
+  doctorId      Int
+  rating        Int      // 1-5
+  review        String?
+  createdAt     DateTime @default(now())
 
   // العلاقات
-  doctor Doctor @relation(fields: [doctorId], references: [id])
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+  patient     User        @relation("PatientRatings", fields: [patientId], references: [id])
+  doctor      Doctor      @relation(fields: [doctorId], references: [id])
 
   @@map("ratings")
+}
+
+// جدول الاستشارات
+model Consultation {
+  id            Int                @id @default(autoincrement())
+  appointmentId Int                @unique
+  type          ConsultationType
+  status        ConsultationStatus @default(SCHEDULED)
+  startTime     DateTime?
+  endTime       DateTime?
+  duration      Int?               // بالدقائق
+  notes         String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  // العلاقات
+  appointment Appointment @relation(fields: [appointmentId], references: [id])
+  messages    Message[]
+
+  @@map("consultations")
+}
+
+// جدول الرسائل
+model Message {
+  id             Int         @id @default(autoincrement())
+  consultationId Int
+  senderId       Int
+  message        String
+  messageType    MessageType @default(TEXT)
+  fileUrl        String?
+  isRead         Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+
+  // العلاقات
+  consultation Consultation @relation(fields: [consultationId], references: [id])
+  sender       User         @relation("MessageSender", fields: [senderId], references: [id])
+
+  @@map("messages")
 }
 
 // Enums
@@ -207,4 +252,22 @@ enum AppointmentStatus {
   CANCELLED
   COMPLETED
   NO_SHOW
+}
+
+enum ConsultationType {
+  VIDEO
+  CHAT
+}
+
+enum ConsultationStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
 }

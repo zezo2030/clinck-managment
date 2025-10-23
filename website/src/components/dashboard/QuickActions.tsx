@@ -11,8 +11,11 @@ import {
   FileText, 
   Settings,
   Bell,
-  Heart
+  Heart,
+  Video,
+  Users
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 interface Action {
@@ -37,20 +40,36 @@ const colorVariants = {
 };
 
 export const QuickActions: React.FC<QuickActionsProps> = ({ className }) => {
+  const router = useRouter();
+  
   const actions: Action[] = [
     {
       id: 'book-appointment',
       label: 'حجز موعد جديد',
       icon: Plus,
       color: 'primary',
-      onClick: () => console.log('حجز موعد جديد'),
+      onClick: () => router.push('/appointments/new'),
     },
     {
       id: 'view-appointments',
       label: 'عرض المواعيد',
       icon: Calendar,
       color: 'blue',
-      onClick: () => console.log('عرض المواعيد'),
+      onClick: () => router.push('/appointments'),
+    },
+    {
+      id: 'consultations',
+      label: 'الاستشارات',
+      icon: Video,
+      color: 'green',
+      onClick: () => router.push('/consultations'),
+    },
+    {
+      id: 'create-consultation',
+      label: 'استشارة جديدة',
+      icon: Users,
+      color: 'purple',
+      onClick: () => router.push('/consultations/new'),
     },
     {
       id: 'profile',

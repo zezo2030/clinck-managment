@@ -1,8 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, CreateDateColumn, UpdateDateColumn, JoinColumn } from 'typeorm';
 import { User } from './user.entity';
 import { Clinic } from './clinic.entity';
 import { Department } from './department.entity';
 import { AppointmentStatusEnum } from '../enums/appointment-status.enum';
+import { Consultation } from './consultation.entity';
 
 @Entity('appointments')
 export class Appointment {
@@ -60,6 +61,9 @@ export class Appointment {
 
   @UpdateDateColumn({ type: 'timestamp with time zone' })
   updatedAt: Date;
+
+  @OneToMany(() => Consultation, consultation => consultation.appointment)
+  consultations: Consultation[];
 }
 
 

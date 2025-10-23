@@ -8,6 +8,8 @@ import { Schedule } from './entities/schedule.entity';
 import { Rating } from './entities/rating.entity';
 import { Appointment } from './entities/appointment.entity';
 import { WaitingList } from './entities/waiting-list.entity';
+import { Consultation } from './entities/consultation.entity';
+import { Message } from './entities/message.entity';
 
 export const typeOrmConfig = (env: NodeJS.ProcessEnv): TypeOrmModuleOptions => ({
   type: 'postgres',
@@ -26,6 +28,8 @@ export const typeOrmConfig = (env: NodeJS.ProcessEnv): TypeOrmModuleOptions => (
     Rating,
     Appointment,
     WaitingList,
+    Consultation,
+    Message,
   ],
   synchronize: env.NODE_ENV !== 'production',
   logging: env.NODE_ENV === 'development',
