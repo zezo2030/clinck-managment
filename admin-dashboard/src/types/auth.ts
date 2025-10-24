@@ -6,6 +6,7 @@ export interface User {
   firstName?: string;
   lastName?: string;
   phone?: string;
+  avatar?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

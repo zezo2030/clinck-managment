@@ -25,4 +25,8 @@ export class CreateDoctorDto {
   @IsOptional()
   @IsBoolean()
   isAvailable?: boolean;
+
+  @IsOptional()
+  @IsString()
+  avatar?: string;
 }

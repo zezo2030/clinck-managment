@@ -124,7 +124,7 @@ export class NotificationsService {
   async createAppointmentNotifications(appointmentId: number) {
     const appointment = await this.appointmentRepository.findOne({
       where: { id: appointmentId },
-      relations: ['patient', 'doctor', 'doctor.user'],
+      relations: ['patient', 'doctor', 'doctor.profile'],
     });
 
     if (!appointment) return;
@@ -158,7 +158,7 @@ export class NotificationsService {
   async createConsultationNotifications(consultationId: number) {
     const consultation = await this.consultationRepository.findOne({
       where: { id: consultationId },
-      relations: ['appointment', 'appointment.patient', 'appointment.doctor', 'appointment.doctor.user'],
+      relations: ['appointment', 'appointment.patient', 'appointment.doctor', 'appointment.doctor.profile'],
     });
 
     if (!consultation) return;

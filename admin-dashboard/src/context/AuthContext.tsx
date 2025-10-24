@@ -16,30 +16,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // محاولة استعادة الجلسة من الكوكي عبر verify
+  // محاولة استعادة الجلسة من localStorage
   useEffect(() => {
     const bootstrap = async () => {
       try {
-        // جرّب التحقق من الجلسة عبر الكوكي
-        const res = await authService.verifyAdmin();
-        if (res?.user) {
-          setUser({
-            id: res.user.id as number,
-            email: res.user.email,
-            role: res.user.role as any,
-            isActive: true,
-            createdAt: '',
-            updatedAt: '',
-          });
-          // حافظ نسخة خفيفة محلياً للاستفادة السريعة
-          localStorage.setItem('admin_user', JSON.stringify(res.user));
-        }
-      } catch {
-        // fallback: حاول قراءة المستخدم من التخزين المحلي
-        const stored = localStorage.getItem('admin_user');
-        if (stored) {
+        // تحقق من وجود token
+        const token = localStorage.getItem('admin_token');
+        const storedUser = localStorage.getItem('admin_user');
+        
+        if (token && storedUser) {
           try {
-            const parsed = JSON.parse(stored) as Partial<User>;
+            const parsed = JSON.parse(storedUser) as Partial<User>;
             if (parsed && parsed.email) {
               setUser({
                 id: parsed.id || 0,
@@ -49,10 +36,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 createdAt: '',
                 updatedAt: '',
                 name: parsed.name,
+                firstName: parsed.firstName,
+                lastName: parsed.lastName,
+                phone: parsed.phone,
+                avatar: parsed.avatar,
               });
             }
-          } catch {}
+          } catch (error) {
+            console.error('Error parsing stored user:', error);
+            // مسح البيانات التالفة
+            localStorage.removeItem('admin_user');
+            localStorage.removeItem('admin_token');
+          }
         }
+      } catch (error) {
+        console.error('Error during auth bootstrap:', error);
       } finally {
         setIsLoading(false);
       }
@@ -82,6 +80,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       await authService.adminLogout();
       setUser(null);
+      // مسح البيانات المحلية
+      localStorage.removeItem('admin_user');
+      localStorage.removeItem('admin_token');
     } finally {
       setIsLoading(false);
     }

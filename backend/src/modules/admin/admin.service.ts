@@ -131,7 +131,7 @@ export class AdminService {
         appointmentDate: MoreThanOrEqual(now),
         status: AppointmentStatusEnum.SCHEDULED,
       },
-      relations: ['patient', 'patient.profile', 'doctor', 'doctor.user', 'doctor.user.profile', 'clinic'],
+      relations: ['patient', 'patient.profile', 'doctor', 'doctor.profile', 'doctor.doctor', 'clinic'],
       order: { appointmentDate: 'ASC' },
       take: 10,
     });
@@ -237,7 +237,7 @@ export class AdminService {
   // إحصائيات قوائم الانتظار
   async getWaitingListStats() {
     const waitingLists = await this.waitingListRepository.find({
-      relations: ['patient', 'patient.profile', 'doctor', 'doctor.user', 'doctor.user.profile', 'department'],
+      relations: ['patient', 'patient.profile', 'doctor', 'doctor.profile', 'doctor.doctor', 'department'],
     });
 
     // إحصائيات حسب القسم

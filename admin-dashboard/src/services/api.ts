@@ -16,10 +16,21 @@ export async function apiFetch<T = any>(url: string, options: RequestOptions = {
     ...(headers || {}),
   };
 
+  // إضافة JWT token إذا كان موجوداً
+  if (auth) {
+    const token = localStorage.getItem('admin_token');
+    console.log('API Request - Token found:', !!token, 'Token value:', token ? token.substring(0, 20) + '...' : 'null');
+    if (token) {
+      (finalHeaders as any)['Authorization'] = `Bearer ${token}`;
+    } else {
+      console.warn('API Request - No token found in localStorage for authenticated request');
+    }
+  }
+
   const response = await fetch(url, {
     ...rest,
     headers: finalHeaders,
-    credentials: auth ? 'include' : 'same-origin',
+    credentials: 'include', // إرسال الـ cookies مع جميع الطلبات
   });
 
   const contentType = response.headers.get('content-type') || '';

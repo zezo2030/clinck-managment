@@ -6,9 +6,11 @@ import { DataTable } from '@/components/ui/DataTable';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Stethoscope, Plus, Pencil, Trash2, ToggleRight, ToggleLeft } from 'lucide-react';
+import { Stethoscope, Plus, Pencil, Trash2, ToggleRight, ToggleLeft, Calendar, Upload, X } from 'lucide-react';
 import { useApi, useApiMutation } from '@/hooks/useApi';
 import { doctorsService, clinicsService, specialtiesService } from '@/services';
+import { useDoctorSchedules, useCreateSchedule } from '@/hooks/useDoctors';
+import { Avatar } from '@/components/ui/Avatar';
 
 const Doctors: React.FC = () => {
   const { data, isLoading, refetch } = useApi<any[]>(['doctors'], () => doctorsService.getDoctors().then((d:any)=> Array.isArray(d)? d : (d?.items||[])));
@@ -18,11 +20,19 @@ const Doctors: React.FC = () => {
   const [limit, setLimit] = React.useState(10);
   const [openCreate, setOpenCreate] = React.useState(false);
   const [openEdit, setOpenEdit] = React.useState<null | number>(null);
+  const [openSchedule, setOpenSchedule] = React.useState(false);
+  const [scheduleDoctorId, setScheduleDoctorId] = React.useState<number>(0);
 
-  const createMutation = useApiMutation((payload: any) => doctorsService.createDoctor(payload), {
+  const createMutation = useApiMutation(({ payload, avatarFile }: { payload: any; avatarFile?: File }) => 
+    avatarFile 
+      ? doctorsService.createDoctorWithAvatar(payload, avatarFile)
+      : doctorsService.createDoctor(payload), {
     onSuccess: () => { setOpenCreate(false); refetch(); },
   });
-  const updateMutation = useApiMutation(({ id, payload }: { id: number; payload: any }) => doctorsService.updateDoctor(id, payload), {
+  const updateMutation = useApiMutation(({ id, payload, avatarFile }: { id: number; payload: any; avatarFile?: File }) => 
+    avatarFile 
+      ? doctorsService.updateDoctorWithAvatar(id, payload, avatarFile)
+      : doctorsService.updateDoctor(id, payload), {
     onSuccess: () => { setOpenEdit(null); refetch(); },
   });
   const deleteMutation = useApiMutation((id: number) => doctorsService.deleteDoctor(id), {
@@ -31,6 +41,12 @@ const Doctors: React.FC = () => {
   const toggleAvailability = useApiMutation(({ id, isAvailable }: { id: number; isAvailable: boolean }) => doctorsService.setAvailability(id, isAvailable), {
     onSuccess: () => refetch(),
   });
+
+  // Schedules hooks
+  const { data: schedulesData, refetch: refetchSchedules } = useDoctorSchedules(scheduleDoctorId);
+  const createScheduleMutation = useCreateSchedule(scheduleDoctorId);
+  const schedules = React.useMemo(() => (Array.isArray(schedulesData) ? schedulesData : (schedulesData || [])) as any[], [schedulesData]);
+  const [newSchedule, setNewSchedule] = React.useState<{ dayOfWeek: number; startTime: string; endTime: string }>({ dayOfWeek: 0, startTime: '09:00', endTime: '17:00' });
 
   const doctors = React.useMemo(() => (data || []) as any[], [data]);
   const filtered = React.useMemo(() => {
@@ -45,6 +61,18 @@ const Doctors: React.FC = () => {
   const pageData = filtered.slice(start, end);
 
   const columns = [
+    {
+      key: 'avatar',
+      title: 'الصورة',
+      render: (_: any, row: any) => (
+        <Avatar
+          src={row.avatar || row.user?.profile?.avatar}
+          alt={row.name || `${row.firstName || ''} ${row.lastName || ''}`.trim()}
+          fallback={row.name || `${row.firstName || ''} ${row.lastName || ''}`.trim()}
+          size="md"
+        />
+      ),
+    },
     { key: 'email', title: 'البريد', sortable: true },
     {
       key: 'name',
@@ -59,6 +87,19 @@ const Doctors: React.FC = () => {
         <Button variant="outline" size="sm" onClick={() => toggleAvailability.mutate({ id: row.id, isAvailable: !val })}>
           {val ? <ToggleRight className="h-4 w-4 mr-1" /> : <ToggleLeft className="h-4 w-4 mr-1" />}
           {val ? 'متاح' : 'غير متاح'}
+        </Button>
+      ),
+    },
+    {
+      key: 'schedules',
+      title: 'الجداول',
+      render: (_: any, row: any) => (
+        <Button
+          variant="secondary"
+          size="sm"
+          onClick={() => { setScheduleDoctorId(row.id); setOpenSchedule(true); refetchSchedules(); }}
+        >
+          <Calendar className="h-4 w-4 mr-1" /> جداول
         </Button>
       ),
     },
@@ -92,7 +133,7 @@ const Doctors: React.FC = () => {
               <DialogHeader>
                 <DialogTitle>إضافة طبيب</DialogTitle>
               </DialogHeader>
-              <DoctorForm onSubmit={(values) => createMutation.mutate(values)} submitting={createMutation.isLoading} />
+              <DoctorForm onSubmit={(values, avatarFile) => createMutation.mutate({ payload: values, avatarFile })} submitting={createMutation.isLoading} />
               <DialogFooter>
                 <Button variant="outline" onClick={() => setOpenCreate(false)}>إلغاء</Button>
               </DialogFooter>
@@ -109,6 +150,66 @@ const Doctors: React.FC = () => {
           pagination={{ page, limit, total, onPageChange: setPage, onLimitChange: (l)=>{ setLimit(l); setPage(1); } }}
         />
 
+        {/* Schedules Dialog */}
+        {openSchedule && (
+          <Dialog open onOpenChange={(o) => { if (!o) setOpenSchedule(false); }}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>جداول الطبيب</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="border rounded p-3">
+                  <div className="font-medium mb-2">القائمة الحالية</div>
+                  <div className="space-y-2 max-h-48 overflow-auto">
+                    {schedules && schedules.length > 0 ? (
+                      schedules.map((s: any) => (
+                        <div key={s.id} className="flex items-center justify-between text-sm">
+                          <span>اليوم: {s.dayOfWeek} | {s.startTime} - {s.endTime}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-sm text-muted-foreground">لا توجد فترات مسجلة</div>
+                    )}
+                  </div>
+                </div>
+
+                <form
+                  className="grid grid-cols-3 gap-3"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    createScheduleMutation.mutate(
+                      { doctorId: scheduleDoctorId, dayOfWeek: newSchedule.dayOfWeek, startTime: newSchedule.startTime, endTime: newSchedule.endTime } as any,
+                      {
+                        onSuccess: () => {
+                          refetchSchedules();
+                        },
+                      } as any
+                    );
+                  }}
+                >
+                  <div>
+                    <Label htmlFor="day">اليوم (0-6)</Label>
+                    <Input id="day" type="number" min={0} max={6} value={newSchedule.dayOfWeek as any} onChange={(e)=> setNewSchedule((p)=> ({ ...p, dayOfWeek: parseInt(e.target.value || '0') }))} />
+                  </div>
+                  <div>
+                    <Label htmlFor="start">بداية</Label>
+                    <Input id="start" type="time" value={newSchedule.startTime} onChange={(e)=> setNewSchedule((p)=> ({ ...p, startTime: e.target.value }))} />
+                  </div>
+                  <div>
+                    <Label htmlFor="end">نهاية</Label>
+                    <Input id="end" type="time" value={newSchedule.endTime} onChange={(e)=> setNewSchedule((p)=> ({ ...p, endTime: e.target.value }))} />
+                  </div>
+                  <div className="col-span-3 flex justify-end">
+                    <Button type="submit" disabled={createScheduleMutation.isLoading}>
+                      {createScheduleMutation.isLoading ? 'جارٍ الإضافة...' : 'إضافة فترة'}
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+
         {openEdit !== null && (
           <Dialog open onOpenChange={(o) => !o && setOpenEdit(null)}>
             <DialogContent>
@@ -117,7 +218,7 @@ const Doctors: React.FC = () => {
               </DialogHeader>
               <DoctorForm
                 initialValues={doctors.find((d) => d.id === openEdit)}
-                onSubmit={(values) => updateMutation.mutate({ id: openEdit!, payload: values })}
+                onSubmit={(values, avatarFile) => updateMutation.mutate({ id: openEdit!, payload: values, avatarFile })}
                 submitting={updateMutation.isLoading}
                 isEdit
               />
@@ -134,7 +235,7 @@ const Doctors: React.FC = () => {
 
 const DoctorForm: React.FC<{
   initialValues?: Partial<any>;
-  onSubmit: (values: Partial<any>) => void;
+  onSubmit: (values: Partial<any>, avatarFile?: File) => void;
   submitting?: boolean;
   isEdit?: boolean;
 }> = ({ initialValues, onSubmit, submitting, isEdit }) => {
@@ -150,26 +251,87 @@ const DoctorForm: React.FC<{
     ...initialValues,
   });
 
+  const [avatarFile, setAvatarFile] = React.useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = React.useState<string | null>(null);
+
   const [specialties, setSpecialties] = React.useState<any[]>([]);
   const [clinics, setClinics] = React.useState<any[]>([]);
 
   React.useEffect(() => {
     specialtiesService.getSpecialties().then((d:any)=> setSpecialties(Array.isArray(d)? d : (d?.items||[])));
     clinicsService.getClinics().then((d:any)=> setClinics(Array.isArray(d)? d : (d?.items||[])));
-  }, []);
+    
+    // تعيين معاينة الصورة الحالية عند التعديل
+    if (initialValues?.avatar || initialValues?.user?.profile?.avatar) {
+      setAvatarPreview(initialValues.avatar || initialValues.user?.profile?.avatar);
+    }
+  }, [initialValues]);
 
   const handle = (k: keyof any) => (e: React.ChangeEvent<HTMLInputElement>) => setForm((p) => ({ ...p, [k]: e.target.value }));
+  
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setAvatarPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeAvatar = () => {
+    setAvatarFile(null);
+    setAvatarPreview(null);
+  };
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const payload: any = { ...form };
     if (typeof payload.specialties === 'string') payload.specialties = payload.specialties.split(',').map((n: string)=> parseInt(n.trim())).filter(Boolean);
     if (typeof payload.clinics === 'string') payload.clinics = payload.clinics.split(',').map((n: string)=> parseInt(n.trim())).filter(Boolean);
     if (isEdit) delete payload.password;
-    onSubmit(payload);
+    onSubmit(payload, avatarFile || undefined);
   };
 
   return (
     <form onSubmit={submit} className="space-y-4">
+      {/* حقل رفع الصورة */}
+      <div className="space-y-2">
+        <Label>الصورة الشخصية</Label>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <Avatar
+              src={avatarPreview || undefined}
+              alt={form.firstName + ' ' + form.lastName}
+              fallback={form.firstName + ' ' + form.lastName}
+              size="lg"
+            />
+            <div className="space-y-2">
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarChange}
+                className="w-auto"
+              />
+              {avatarPreview && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={removeAvatar}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  إزالة الصورة
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <Label htmlFor="email">البريد</Label>

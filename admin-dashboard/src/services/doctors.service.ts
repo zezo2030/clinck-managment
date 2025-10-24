@@ -17,8 +17,58 @@ export const doctorsService = {
     return response.data as Doctor;
   },
 
+  async createDoctorWithAvatar(doctorData: CreateDoctorDto, avatarFile?: File) {
+    const formData = new FormData();
+    
+    // إضافة البيانات النصية
+    Object.entries(doctorData).forEach(([key, value]) => {
+      if (key === 'specialties' || key === 'clinics') {
+        formData.append(key, JSON.stringify(value));
+      } else if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+    
+    // إضافة الصورة إذا كانت موجودة
+    if (avatarFile) {
+      formData.append('avatar', avatarFile);
+    }
+    
+    const response = await api.post('/doctors', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data as Doctor;
+  },
+
   async updateDoctor(id: number, doctorData: UpdateDoctorDto) {
     const response = await api.patch(`/doctors/${id}`, doctorData);
+    return response.data as Doctor;
+  },
+
+  async updateDoctorWithAvatar(id: number, doctorData: UpdateDoctorDto, avatarFile?: File) {
+    const formData = new FormData();
+    
+    // إضافة البيانات النصية
+    Object.entries(doctorData).forEach(([key, value]) => {
+      if (key === 'specialties' || key === 'clinics') {
+        formData.append(key, JSON.stringify(value));
+      } else if (value !== undefined && value !== null) {
+        formData.append(key, String(value));
+      }
+    });
+    
+    // إضافة الصورة إذا كانت موجودة
+    if (avatarFile) {
+      formData.append('avatar', avatarFile);
+    }
+    
+    const response = await api.patch(`/doctors/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data as Doctor;
   },
 

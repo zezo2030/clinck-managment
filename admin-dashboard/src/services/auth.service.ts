@@ -9,16 +9,16 @@ export const authService = {
     const res = await apiFetch<AuthResponse>(`${BASE}/admin/login`, {
       method: 'POST',
       body: JSON.stringify(credentials),
-      auth: true,
+      auth: false, // لا نحتاج auth للـ login
     });
 
     // حفظ في localStorage للمزامنة مع الحارس والواجهة
     if (res?.user) {
       localStorage.setItem('admin_user', JSON.stringify(res.user));
     }
-    // قد لا يعاد token في الرد (نعتمد على الكوكي)، لكن إن وُجد خزّنه كنسخة احتياط
+    // حفظ الـ token
     if ((res as any)?.token) {
-      localStorage.setItem('admin_token', (res as any).token as any);
+      localStorage.setItem('admin_token', (res as any).token);
     }
     return res;
   },

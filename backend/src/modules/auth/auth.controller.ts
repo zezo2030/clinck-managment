@@ -90,6 +90,7 @@ export class AuthController {
 
     return {
       message: 'تم تسجيل الدخول بنجاح',
+      token: token, // إضافة الـ token للاستجابة
       user: {
         id: user.id,
         email: user.email,

@@ -12,6 +12,7 @@ export interface CreateDoctorDto {
   experience?: number;
   education?: string;
   bio?: string;
+  avatar?: string;
 }
 
 export interface UpdateDoctorDto {
@@ -24,6 +25,7 @@ export interface UpdateDoctorDto {
   experience?: number;
   education?: string;
   bio?: string;
+  avatar?: string;
   isActive?: boolean;
 }
 
