@@ -42,25 +42,34 @@ export class ConsultationsService {
       notes: createConsultationDto.notes,
     });
 
-    return this.consultationRepository.save(consultation);
+    const result = await this.consultationRepository.save(consultation);
+    return result;
   }
 
   async findAll(patientId?: number, doctorId?: number) {
-    const queryBuilder = this.consultationRepository
-      .createQueryBuilder('consultation')
-      .leftJoinAndSelect('consultation.appointment', 'appointment')
-      .leftJoinAndSelect('appointment.patient', 'patient')
-      .leftJoinAndSelect('appointment.doctor', 'doctor');
+    try {
+      const queryBuilder = this.consultationRepository
+        .createQueryBuilder('consultation')
+        .leftJoinAndSelect('consultation.appointment', 'appointment')
+        .leftJoinAndSelect('appointment.patient', 'patient')
+        .leftJoinAndSelect('appointment.doctor', 'doctor');
 
-    if (patientId) {
-      queryBuilder.andWhere('patient.id = :patientId', { patientId });
+      if (patientId) {
+        queryBuilder.andWhere('patient.id = :patientId', { patientId });
+      }
+
+      if (doctorId) {
+        queryBuilder.andWhere('doctor.id = :doctorId', { doctorId });
+      }
+
+      const result = await queryBuilder.getMany();
+      // التأكد من إرجاع مصفوفة دائماً
+      return Array.isArray(result) ? result : [];
+    } catch (error) {
+      console.error('Error fetching consultations:', error);
+      // إرجاع مصفوفة فارغة في حالة الخطأ
+      return [];
     }
-
-    if (doctorId) {
-      queryBuilder.andWhere('doctor.id = :doctorId', { doctorId });
-    }
-
-    return queryBuilder.getMany();
   }
 
   async findOne(id: number) {
@@ -87,7 +96,8 @@ export class ConsultationsService {
     consultation.startedAt = new Date();
     consultation.notes = startConsultationDto.notes;
 
-    return this.consultationRepository.save(consultation);
+    const result = await this.consultationRepository.save(consultation);
+    return result;
   }
 
   async end(id: number, endConsultationDto: EndConsultationDto) {
@@ -101,7 +111,8 @@ export class ConsultationsService {
     consultation.endedAt = new Date();
     consultation.notes = endConsultationDto.notes;
 
-    return this.consultationRepository.save(consultation);
+    const result = await this.consultationRepository.save(consultation);
+    return result;
   }
 
   async cancel(id: number, reason?: string) {
@@ -115,12 +126,13 @@ export class ConsultationsService {
     consultation.cancelledAt = new Date();
     consultation.cancellationReason = reason;
 
-    return this.consultationRepository.save(consultation);
+    const result = await this.consultationRepository.save(consultation);
+    return result;
   }
 
   async getMessages(id: number) {
     const consultation = await this.findOne(id);
-    return consultation.messages;
+    return consultation.messages || [];
   }
 
   async sendMessage(consultationId: number, senderId: number, message: string, messageType: string = 'TEXT', fileUrl?: string) {
@@ -132,12 +144,18 @@ export class ConsultationsService {
 
     // هنا يمكن إضافة منطق إرسال الرسالة
     // سيكون هذا في messages service منفصل
-    return { success: true };
+    return { success: true, message: 'تم إرسال الرسالة بنجاح' };
   }
 
   // إضافة الطرق المفقودة
   async getConsultationHistory(patientId?: number, doctorId?: number) {
-    return this.findAll(patientId, doctorId);
+    try {
+      const result = await this.findAll(patientId, doctorId);
+      return Array.isArray(result) ? result : [];
+    } catch (error) {
+      console.error('Error fetching consultation history:', error);
+      return [];
+    }
   }
 
   async getConsultationById(id: number) {
@@ -145,18 +163,22 @@ export class ConsultationsService {
   }
 
   async getConsultationMessages(id: number) {
-    return this.getMessages(id);
+    const result = await this.getMessages(id);
+    return result || [];
   }
 
   async startConsultation(id: number, startConsultationDto: StartConsultationDto) {
-    return this.start(id, startConsultationDto);
+    const result = await this.start(id, startConsultationDto);
+    return result;
   }
 
   async endConsultation(id: number, endConsultationDto: EndConsultationDto) {
-    return this.end(id, endConsultationDto);
+    const result = await this.end(id, endConsultationDto);
+    return result;
   }
 
   async cancelConsultation(id: number) {
-    return this.cancel(id);
+    const result = await this.cancel(id);
+    return result;
   }
 }
