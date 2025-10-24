@@ -1,58 +1,33 @@
 import { api } from './api';
-import { Clinic, PaginatedResponse, QueryParams } from '@/types';
+import { Clinic } from '@/types';
 
 export const clinicsService = {
-  // Get all clinics with pagination and filtering
-  async getClinics(params?: QueryParams): Promise<PaginatedResponse<Clinic>> {
+  async getClinics(params?: Record<string, any>) {
     const response = await api.get('/clinics', { params });
-    return response.data;
+    return response.data as any;
   },
 
-  // Get a specific clinic by ID
-  async getClinicById(id: number): Promise<Clinic> {
+  async getClinicById(id: number) {
     const response = await api.get(`/clinics/${id}`);
-    return response.data;
+    return response.data as Clinic;
   },
 
-  // Create a new clinic
-  async createClinic(clinicData: Partial<Clinic>): Promise<Clinic> {
+  async createClinic(clinicData: Partial<Clinic>) {
     const response = await api.post('/clinics', clinicData);
-    return response.data;
+    return response.data as Clinic;
   },
 
-  // Update an existing clinic
-  async updateClinic(id: number, clinicData: Partial<Clinic>): Promise<Clinic> {
-    const response = await api.put(`/clinics/${id}`, clinicData);
-    return response.data;
+  async updateClinic(id: number, clinicData: Partial<Clinic>) {
+    const response = await api.patch(`/clinics/${id}`, clinicData);
+    return response.data as Clinic;
   },
 
-  // Delete a clinic
-  async deleteClinic(id: number): Promise<void> {
+  async deleteClinic(id: number) {
     await api.delete(`/clinics/${id}`);
   },
 
-  // Update clinic status
-  async updateClinicStatus(id: number, isActive: boolean): Promise<Clinic> {
-    const response = await api.patch(`/clinics/${id}/status`, { isActive });
-    return response.data;
+  async setActive(id: number, isActive: boolean) {
+    const response = await api.patch(`/clinics/${id}/activate`, { isActive });
+    return response.data as Clinic;
   },
-
-  // Search clinics
-  async searchClinics(query: string, params?: QueryParams): Promise<PaginatedResponse<Clinic>> {
-    const response = await api.get('/clinics/search', { 
-      params: { ...params, q: query } 
-    });
-    return response.data;
-  },
-
-  // Get clinic statistics
-  async getClinicStats(): Promise<{
-    total: number;
-    active: number;
-    inactive: number;
-    byLocation: Record<string, number>;
-  }> {
-    const response = await api.get('/clinics/stats');
-    return response.data;
-  }
 };

@@ -4,17 +4,14 @@ import {
   Doctor, 
   CreateDoctorDto, 
   UpdateDoctorDto, 
-  DoctorWithStats,
   Schedule,
   CreateScheduleDto,
   UpdateScheduleDto,
-  PaginatedResponse,
-  QueryParams 
 } from '@/types';
 
-export const useDoctors = (params?: QueryParams) => {
+export const useDoctors = (params?: Record<string, any>) => {
   return useApi(
-    ['doctors', params],
+    ['doctors', params as any],
     () => doctorsService.getDoctors(params),
     {
       keepPreviousData: true,
@@ -24,7 +21,7 @@ export const useDoctors = (params?: QueryParams) => {
 
 export const useDoctor = (id: number) => {
   return useApi(
-    ['doctors', id],
+    ['doctors', id as any],
     () => doctorsService.getDoctorById(id),
     {
       enabled: !!id,
@@ -35,11 +32,7 @@ export const useDoctor = (id: number) => {
 export const useCreateDoctor = () => {
   return useApiMutation(
     (doctorData: CreateDoctorDto) => doctorsService.createDoctor(doctorData),
-    {
-      onSuccess: () => {
-        // Invalidate doctors list
-      },
-    }
+    {}
   );
 };
 
@@ -47,39 +40,20 @@ export const useUpdateDoctor = () => {
   return useApiMutation(
     ({ id, doctorData }: { id: number; doctorData: UpdateDoctorDto }) =>
       doctorsService.updateDoctor(id, doctorData),
-    {
-      onSuccess: (data, { id }) => {
-        // Update the specific doctor in cache
-      },
-    }
+    {}
   );
 };
 
 export const useDeleteDoctor = () => {
   return useApiMutation(
     (id: number) => doctorsService.deleteDoctor(id),
-    {
-      onSuccess: () => {
-        // Invalidate doctors list
-      },
-    }
+    {}
   );
 };
 
-export const useDoctorStats = (id: number) => {
-  return useApi(
-    ['doctors', id, 'stats'],
-    () => doctorsService.getDoctorStats(id),
-    {
-      enabled: !!id,
-    }
-  );
-};
-
-// Schedule hooks
 export const useDoctorSchedules = (doctorId: number) => {
   return useApi(
-    ['doctors', doctorId, 'schedules'],
+    ['doctors', doctorId as any, 'schedules'],
     () => doctorsService.getDoctorSchedules(doctorId),
     {
       enabled: !!doctorId,
@@ -87,37 +61,18 @@ export const useDoctorSchedules = (doctorId: number) => {
   );
 };
 
-export const useCreateSchedule = () => {
+export const useCreateSchedule = (doctorId: number) => {
   return useApiMutation(
-    (scheduleData: CreateScheduleDto) => doctorsService.createSchedule(scheduleData),
-    {
-      onSuccess: (data, variables) => {
-        // Invalidate doctor schedules
-      },
-    }
+    (scheduleData: CreateScheduleDto) => doctorsService.createSchedule(doctorId, scheduleData),
+    {}
   );
 };
 
-export const useUpdateSchedule = () => {
-  return useApiMutation(
-    ({ scheduleId, scheduleData }: { scheduleId: number; scheduleData: UpdateScheduleDto }) =>
-      doctorsService.updateSchedule(scheduleId, scheduleData),
-    {
-      onSuccess: (data, { scheduleId }) => {
-        // Update the specific schedule in cache
-      },
-    }
-  );
-};
-
-export const useDeleteSchedule = () => {
-  return useApiMutation(
-    (scheduleId: number) => doctorsService.deleteSchedule(scheduleId),
-    {
-      onSuccess: () => {
-        // Invalidate doctor schedules
-      },
-    }
+export const useGetAvailableDoctors = (params: { date: string; departmentId?: number }) => {
+  return useApi(
+    ['doctors', 'available', params.date, String(params.departmentId || '')],
+    () => doctorsService.getAvailableDoctors(params),
+    {}
   );
 };
 

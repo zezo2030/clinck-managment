@@ -1,65 +1,44 @@
 import { api } from './api';
-import { Consultation, PaginatedResponse, QueryParams } from '@/types';
+import { Consultation } from '@/types';
 
 export const consultationsService = {
-  // Get all consultations with pagination and filtering
-  async getConsultations(params?: QueryParams): Promise<PaginatedResponse<Consultation>> {
+  async getConsultations(params?: { patientId?: number; doctorId?: number }) {
     const response = await api.get('/consultations', { params });
-    return response.data;
+    return response.data as any;
   },
 
-  // Get a specific consultation by ID
-  async getConsultationById(id: number): Promise<Consultation> {
+  async getConsultationById(id: number) {
     const response = await api.get(`/consultations/${id}`);
-    return response.data;
+    return response.data as Consultation;
   },
 
-  // Create a new consultation
-  async createConsultation(consultationData: Partial<Consultation>): Promise<Consultation> {
+  async createConsultation(consultationData: Partial<Consultation>) {
     const response = await api.post('/consultations', consultationData);
-    return response.data;
+    return response.data as Consultation;
   },
 
-  // Update an existing consultation
-  async updateConsultation(id: number, consultationData: Partial<Consultation>): Promise<Consultation> {
-    const response = await api.put(`/consultations/${id}`, consultationData);
-    return response.data;
+  async start(id: number, dto: any) {
+    const response = await api.patch(`/consultations/${id}/start`, dto);
+    return response.data as Consultation;
   },
 
-  // Delete a consultation
-  async deleteConsultation(id: number): Promise<void> {
-    await api.delete(`/consultations/${id}`);
+  async end(id: number, dto: any) {
+    const response = await api.patch(`/consultations/${id}/end`, dto);
+    return response.data as Consultation;
   },
 
-  // Get consultations by doctor
-  async getConsultationsByDoctor(doctorId: number, params?: QueryParams): Promise<PaginatedResponse<Consultation>> {
-    const response = await api.get(`/consultations/doctor/${doctorId}`, { params });
-    return response.data;
+  async cancel(id: number) {
+    const response = await api.patch(`/consultations/${id}/cancel`);
+    return response.data as Consultation;
   },
 
-  // Get consultations by patient
-  async getConsultationsByPatient(patientId: number, params?: QueryParams): Promise<PaginatedResponse<Consultation>> {
-    const response = await api.get(`/consultations/patient/${patientId}`, { params });
-    return response.data;
+  async getMessages(id: number) {
+    const response = await api.get(`/consultations/${id}/messages`);
+    return response.data as any;
   },
 
-  // Search consultations
-  async searchConsultations(query: string, params?: QueryParams): Promise<PaginatedResponse<Consultation>> {
-    const response = await api.get('/consultations/search', { 
-      params: { ...params, q: query } 
-    });
-    return response.data;
+  async sendMessage(id: number, body: { message: string; messageType?: string; fileUrl?: string }) {
+    const response = await api.post(`/consultations/${id}/messages`, body);
+    return response.data as any;
   },
-
-  // Get consultation statistics
-  async getConsultationStats(): Promise<{
-    total: number;
-    completed: number;
-    pending: number;
-    byDoctor: Record<string, number>;
-    byMonth: Array<{ month: string; count: number }>;
-  }> {
-    const response = await api.get('/consultations/stats');
-    return response.data;
-  }
 };
