@@ -7,4 +7,5 @@ export * from './clinics.service';
 export * from './appointments.service';
 export * from './consultations.service';
 export * from './specialties.service';
+export * from './waiting-list.service';
 
