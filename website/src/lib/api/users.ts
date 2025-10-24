@@ -3,7 +3,7 @@ import { apiClient } from './client';
 export interface User {
   id: number;
   email: string;
-  role: 'PATIENT' | 'DOCTOR' | 'ADMIN';
+  role: 'PATIENT' | 'DOCTOR';
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -19,7 +19,7 @@ export interface User {
 export interface CreateUserDto {
   email: string;
   password: string;
-  role: 'PATIENT' | 'DOCTOR' | 'ADMIN';
+  role: 'PATIENT' | 'DOCTOR';
   firstName: string;
   lastName: string;
   phone: string;
@@ -29,7 +29,7 @@ export interface CreateUserDto {
 export interface UpdateUserDto {
   email?: string;
   password?: string;
-  role?: 'PATIENT' | 'DOCTOR' | 'ADMIN';
+  role?: 'PATIENT' | 'DOCTOR';
   firstName?: string;
   lastName?: string;
   phone?: string;

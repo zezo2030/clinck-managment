@@ -1,0 +1,45 @@
+# Dockerfile محسن للتطوير مع معالجة أفضل لمشاكل الشبكة
+FROM node:20-alpine
+
+# تثبيت الحزم المطلوبة
+RUN apk add --no-cache libc6-compat curl git
+
+# إعداد متغيرات البيئة
+ENV NODE_ENV=development
+ENV NPM_CONFIG_REGISTRY=https://registry.npmjs.org/
+ENV NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=20000
+ENV NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=120000
+ENV NPM_CONFIG_FETCH_RETRIES=5
+ENV NPM_CONFIG_FETCH_TIMEOUT=300000
+ENV NPM_CONFIG_MAXSOCKETS=15
+
+WORKDIR /app
+
+# نسخ ملفات التبعيات أولاً للاستفادة من Docker cache
+COPY package*.json ./
+
+# تنظيف cache وتثبيت التبعيات مع معالجة أفضل للأخطاء
+RUN npm cache clean --force && \
+    npm config set registry https://registry.npmjs.org/ && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm config set fetch-retries 5 && \
+    npm config set fetch-timeout 300000 && \
+    npm config set maxsockets 15 && \
+    npm config set audit false && \
+    npm config set fund false && \
+    npm install --legacy-peer-deps --no-audit --no-fund --verbose --maxsockets 15 || \
+    (sleep 10 && npm install --legacy-peer-deps --no-audit --no-fund --verbose --maxsockets 15) || \
+    (sleep 30 && npm install --legacy-peer-deps --no-audit --no-fund --verbose --maxsockets 15)
+
+# نسخ الكود المصدري
+COPY . .
+
+# فتح المنفذ
+EXPOSE 3002
+
+# متغيرات البيئة
+ENV PORT=3002
+
+# تشغيل التطبيق في وضع التطوير
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3002"]

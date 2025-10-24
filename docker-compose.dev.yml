@@ -96,6 +96,26 @@ services:
       - backend-dev
     command: npm run dev
 
+  # لوحة التحكم الإدارية للتطوير
+  admin-dashboard-dev:
+    build:
+      context: ./admin-dashboard
+      dockerfile: Dockerfile.dev
+    container_name: clinic_admin_dashboard_dev
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:3000
+    volumes:
+      - ./admin-dashboard:/app
+      - /app/node_modules
+    ports:
+      - "3002:3002"
+    networks:
+      - clinic_network_dev
+    depends_on:
+      - backend-dev
+    command: npm run dev -- --host 0.0.0.0 --port 3002
+
 volumes:
   postgres_dev_data:
     driver: local

@@ -6,6 +6,7 @@ import { User } from './entities/user.entity';
 import { Profile } from './entities/profile.entity';
 import { Doctor } from './entities/doctor.entity';
 import { RoleEnum } from './enums/role.enum';
+import * as bcrypt from 'bcryptjs';
 
 export async function seedDatabase(dataSource: DataSource) {
   const specialtyRepository = dataSource.getRepository(Specialty);
@@ -21,6 +22,15 @@ export async function seedDatabase(dataSource: DataSource) {
     address: 'الرياض، المملكة العربية السعودية',
     phone: '+966501234567',
     email: 'info@nour-clinic.com',
+    workingHours: {
+      sunday: '8:00 - 22:00',
+      monday: '8:00 - 22:00',
+      tuesday: '8:00 - 22:00',
+      wednesday: '8:00 - 22:00',
+      thursday: '8:00 - 22:00',
+      friday: '8:00 - 22:00',
+      saturday: '8:00 - 22:00'
+    },
     isActive: true,
   });
   await clinicRepository.save(defaultClinic);
@@ -104,6 +114,7 @@ export async function seedDatabase(dataSource: DataSource) {
   const defaultDepartment = departmentRepository.create({
     name: 'الطب العام',
     description: 'القسم الرئيسي للطب العام',
+    clinicId: defaultClinic.id,
     isActive: true,
   });
   await departmentRepository.save(defaultDepartment);
@@ -149,7 +160,7 @@ export async function seedDatabase(dataSource: DataSource) {
     // إنشاء المستخدم
     const user = userRepository.create({
       email: doctorData.email,
-      password: doctorData.password,
+      password: await bcrypt.hash(doctorData.password, 10),
       role: RoleEnum.DOCTOR,
     });
     await userRepository.save(user);
@@ -178,5 +189,22 @@ export async function seedDatabase(dataSource: DataSource) {
     await doctorRepository.save(doctor);
   }
 
-  console.log('تم إنشاء التخصصات والأطباء الافتراضية بنجاح');
+  // إنشاء أدمن افتراضي
+  const adminUser = userRepository.create({
+    email: 'admin@clinic.com',
+    password: await bcrypt.hash('admin123', 10),
+    role: RoleEnum.ADMIN,
+    isActive: true,
+  });
+  await userRepository.save(adminUser);
+
+  const adminProfile = profileRepository.create({
+    userId: adminUser.id,
+    firstName: 'مدير',
+    lastName: 'النظام',
+    phone: '+966501234500',
+  });
+  await profileRepository.save(adminProfile);
+
+  console.log('تم إنشاء التخصصات والأطباء والأدمن الافتراضية بنجاح');
 }

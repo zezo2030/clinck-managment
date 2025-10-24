@@ -97,7 +97,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   phone?: string;
-  role?: 'PATIENT' | 'DOCTOR' | 'ADMIN';
+  role?: 'PATIENT' | 'DOCTOR';
 }
 
 export interface AuthResponse {
@@ -132,7 +132,7 @@ export interface AuthContextType {
   isAuthenticated: boolean;
 }
 
-export type UserRole = 'PATIENT' | 'DOCTOR' | 'ADMIN';
+export type UserRole = 'PATIENT' | 'DOCTOR';
 
 // Doctor Profile Types
 export interface Rating {

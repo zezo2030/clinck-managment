@@ -14,7 +14,11 @@ COPY prisma ./prisma/
 RUN npm config set registry https://registry.npmjs.org/ && \
     npm config set fetch-retry-mintimeout 20000 && \
     npm config set fetch-retry-maxtimeout 120000 && \
-    npm install --legacy-peer-deps
+    npm config set fetch-retries 5 && \
+    npm config set fetch-timeout 300000 && \
+    npm config set maxsockets 15 && \
+    npm cache clean --force && \
+    npm install --legacy-peer-deps --no-audit --no-fund --verbose
 
 # نسخ الكود المصدري
 COPY . .

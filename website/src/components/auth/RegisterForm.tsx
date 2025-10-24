@@ -16,7 +16,7 @@ const registerSchema = z.object({
   password: z.string().min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل'),
   confirmPassword: z.string(),
   phone: z.string().optional(),
-  role: z.enum(['PATIENT', 'DOCTOR', 'ADMIN']).default('PATIENT'),
+  role: z.enum(['PATIENT', 'DOCTOR']).default('PATIENT'),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'كلمات المرور غير متطابقة',
   path: ['confirmPassword'],
@@ -33,7 +33,6 @@ interface RegisterFormProps {
 const roleOptions = [
   { value: 'PATIENT', label: 'مريض' },
   { value: 'DOCTOR', label: 'طبيب' },
-  { value: 'ADMIN', label: 'مدير' },
 ];
 
 export const RegisterForm: React.FC<RegisterFormProps> = ({

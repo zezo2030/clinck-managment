@@ -1,0 +1,34 @@
+# Dockerfile للتطوير
+FROM node:20-alpine
+
+# تثبيت الحزم المطلوبة
+RUN apk add --no-cache libc6-compat curl
+
+WORKDIR /app
+
+# نسخ ملفات التبعيات
+COPY package*.json ./
+
+# تثبيت جميع التبعيات (بما في ذلك dev dependencies)
+RUN npm config set registry https://registry.npmjs.org/ && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm config set fetch-retries 5 && \
+    npm config set fetch-timeout 300000 && \
+    npm config set maxsockets 15 && \
+    npm cache clean --force && \
+    npm install --legacy-peer-deps --no-audit --no-fund --verbose
+
+# نسخ الكود المصدري
+COPY . .
+
+# فتح المنفذ
+EXPOSE 3002
+
+# متغيرات البيئة
+ENV NODE_ENV=development
+ENV PORT=3002
+
+# تشغيل التطبيق في وضع التطوير
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "3002"]
+

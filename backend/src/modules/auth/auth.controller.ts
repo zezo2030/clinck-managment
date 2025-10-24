@@ -61,15 +61,21 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'تم تسجيل الدخول بنجاح' })
   @ApiResponse({ status: 401, description: 'بيانات الدخول غير صحيحة أو غير مصرح للأدمن' })
   async adminLogin(@Body() loginDto: LoginDto, @Res({ passthrough: true }) res: Response) {
+    console.log('Admin login attempt:', loginDto.email);
+    
     const user = await this.authService.validateUser(loginDto.email, loginDto.password);
     if (!user) {
+      console.log('Admin login failed: Invalid credentials for', loginDto.email);
       throw new UnauthorizedException('بيانات الدخول غير صحيحة');
     }
     
     // التحقق من أن المستخدم أدمن
     if (user.role !== 'ADMIN') {
+      console.log('Admin login failed: User is not admin, role:', user.role);
       throw new UnauthorizedException('غير مصرح - هذه الصفحة مخصصة للأدمن فقط');
     }
+    
+    console.log('Admin login successful for:', user.email);
 
     const token = await this.authService.generateAdminToken(user);
     
@@ -79,8 +85,7 @@ export class AuthController {
       secure: false, // false في التطوير
       sameSite: 'lax', // تغيير من strict إلى lax
       maxAge: 24 * 60 * 60 * 1000, // 24 ساعة
-      path: '/',
-      domain: 'localhost'
+      path: '/'
     });
 
     return {
@@ -100,6 +105,7 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'جلسة صحيحة' })
   @ApiResponse({ status: 401, description: 'جلسة غير صحيحة' })
   async verifyAdminSession(@CurrentUser() user: any) {
+    console.log('Admin session verification for:', user.email);
     return {
       user: {
         id: user.sub,
@@ -117,8 +123,7 @@ export class AuthController {
       httpOnly: true,
       secure: false,
       sameSite: 'lax',
-      path: '/',
-      domain: 'localhost'
+      path: '/'
     });
     
     return { message: 'تم تسجيل الخروج بنجاح' };

@@ -11,7 +11,7 @@ export interface RegisterRequest {
   email: string;
   password: string;
   phone?: string;
-  role?: 'PATIENT' | 'DOCTOR' | 'ADMIN';
+  role?: 'PATIENT' | 'DOCTOR';
 }
 
 export interface AuthResponse {

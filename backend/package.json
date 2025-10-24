@@ -22,7 +22,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:seed": "ts-node prisma/seed.ts",
-    "prisma:reset": "prisma migrate reset"
+    "prisma:reset": "prisma migrate reset",
+    "seed": "ts-node -r tsconfig-paths/register scripts/seed-database.ts"
   },
   "dependencies": {
     "@nestjs/common": "^10.0.0",

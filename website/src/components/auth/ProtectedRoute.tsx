@@ -7,7 +7,7 @@ import { AuthModal } from './AuthModal';
 interface ProtectedRouteProps {
   children: React.ReactNode;
   fallback?: React.ReactNode;
-  requiredRole?: 'PATIENT' | 'DOCTOR' | 'ADMIN';
+  requiredRole?: 'PATIENT' | 'DOCTOR';
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
