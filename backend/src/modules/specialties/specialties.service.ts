@@ -21,7 +21,7 @@ export class SpecialtiesService {
   async findAll() {
     return this.specialtyRepository.find({
       where: { isActive: true },
-      relations: ['doctors', 'doctors.user', 'doctors.user.profile'],
+      relations: ['doctors'],
       order: { name: 'ASC' }
     });
   }
@@ -29,7 +29,7 @@ export class SpecialtiesService {
   async findOne(id: number) {
     return this.specialtyRepository.findOne({
       where: { id },
-      relations: ['doctors', 'doctors.user', 'doctors.user.profile']
+      relations: ['doctors']
     });
   }
 

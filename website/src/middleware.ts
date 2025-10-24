@@ -5,7 +5,7 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // حماية صفحات تتطلب تسجيل دخول عادي
-  const protectedRoutes = ['/dashboard', '/profile', '/consultations'];
+  const protectedRoutes = ['/dashboard', '/profile', '/consultations', '/appointments'];
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
   
   if (isProtectedRoute) {
