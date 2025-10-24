@@ -18,17 +18,18 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { RoleEnum } from '../../database/enums/role.enum';
 
 @Controller('specialties')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class SpecialtiesController {
   constructor(private readonly specialtiesService: SpecialtiesService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(RoleEnum.ADMIN)
   create(@Body() createSpecialtyDto: CreateSpecialtyDto) {
     return this.specialtiesService.create(createSpecialtyDto);
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR, RoleEnum.PATIENT)
   findAll() {
     return this.specialtiesService.findAll();
@@ -40,18 +41,21 @@ export class SpecialtiesController {
   }
 
   @Get('stats')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(RoleEnum.ADMIN)
   getStats() {
     return this.specialtiesService.getSpecialtyStats();
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(RoleEnum.ADMIN, RoleEnum.DOCTOR, RoleEnum.PATIENT)
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.specialtiesService.findOne(id);
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(RoleEnum.ADMIN)
   update(
     @Param('id', ParseIntPipe) id: number,
@@ -61,6 +65,7 @@ export class SpecialtiesController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(RoleEnum.ADMIN)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.specialtiesService.remove(id);

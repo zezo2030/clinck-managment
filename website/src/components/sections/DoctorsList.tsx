@@ -5,20 +5,57 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { AnimatedCard } from '@/components/animations/AnimatedCard';
 import { StarIcon, MapPinIcon, ClockIcon, PhoneIcon } from 'lucide-react';
-import { mockDoctors } from '@/lib/mock-data';
+import { useQuery } from '@tanstack/react-query';
+import { doctorsService } from '@/lib/api/doctors';
 
 export const DoctorsList: React.FC = () => {
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const specialties = ['all', ...Array.from(new Set(mockDoctors.map(doctor => doctor.specialty)))];
-
-  const filteredDoctors = mockDoctors.filter(doctor => {
-    const matchesSpecialty = selectedSpecialty === 'all' || doctor.specialty === selectedSpecialty;
-    const matchesSearch = doctor.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         doctor.specialty.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesSpecialty && matchesSearch;
+  // الحصول على الأطباء من API
+  const { data: doctors, isLoading, error } = useQuery({
+    queryKey: ['doctors'],
+    queryFn: () => doctorsService.getDoctors(),
+    staleTime: 5 * 60 * 1000, // 5 دقائق
   });
+
+  const specialties = ['all', ...Array.from(new Set(doctors?.map(doctor => doctor.specialization) || []))];
+
+  const filteredDoctors = doctors?.filter(doctor => {
+    const matchesSpecialty = selectedSpecialty === 'all' || doctor.specialization === selectedSpecialty;
+    const doctorName = `${doctor.user.profile.firstName} ${doctor.user.profile.lastName}`;
+    const matchesSearch = doctorName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         doctor.specialization.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesSpecialty && matchesSearch;
+  }) || [];
+
+  if (isLoading) {
+    return (
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">جاري تحميل الأطباء...</p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  if (error) {
+    return (
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center py-12">
+            <p className="text-red-600 mb-4">حدث خطأ في تحميل الأطباء</p>
+            <Button onClick={() => window.location.reload()}>
+              إعادة المحاولة
+            </Button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="py-20 bg-white">
@@ -75,11 +112,11 @@ export const DoctorsList: React.FC = () => {
                 </div>
                 
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  {doctor.name}
+                  د. {doctor.user.profile.firstName} {doctor.user.profile.lastName}
                 </h3>
                 
                 <p className="text-primary-600 font-medium mb-2">
-                  {doctor.specialty}
+                  {doctor.specialization}
                 </p>
                 
                 <div className="flex items-center justify-center mb-4">
@@ -88,14 +125,14 @@ export const DoctorsList: React.FC = () => {
                       <StarIcon
                         key={i}
                         className={`w-4 h-4 ${
-                          i < Math.floor(doctor.rating)
+                          i < Math.floor(4.5) // تقييم افتراضي
                             ? 'text-yellow-400 fill-current'
                             : 'text-gray-300'
                         }`}
                       />
                     ))}
                     <span className="text-sm text-gray-600 mr-2">
-                      {doctor.rating}
+                      4.5
                     </span>
                   </div>
                 </div>
@@ -103,7 +140,7 @@ export const DoctorsList: React.FC = () => {
                 <div className="space-y-2 text-sm text-gray-600 mb-6">
                   <div className="flex items-center justify-center">
                     <MapPinIcon className="w-4 h-4 ml-2" />
-                    <span>{doctor.clinic}</span>
+                    <span>{doctor.clinic.name}</span>
                   </div>
                   <div className="flex items-center justify-center">
                     <ClockIcon className="w-4 h-4 ml-2" />

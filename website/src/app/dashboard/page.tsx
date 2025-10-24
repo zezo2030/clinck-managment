@@ -12,6 +12,7 @@ import { SpecialtiesOverview } from '@/components/dashboard/SpecialtiesOverview'
 import { Calendar, MessageSquare, Bell, TrendingUp, Video, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { consultationService } from '@/lib/api/consultations';
+import { appointmentsService } from '@/lib/api/appointments';
 
 export default function DashboardPage() {
   const { user, logout } = useAuth();
@@ -29,36 +30,38 @@ export default function DashboardPage() {
     },
   });
 
-  // بيانات وهمية للعرض
-  const mockAppointments = [
-    {
-      id: '1',
-      doctor: 'د. أحمد محمد',
-      specialty: 'طب الأسنان',
-      date: '2025-10-25',
-      time: '10:00 صباحاً',
-      location: 'عيادة النور - الرياض',
-      phone: '+966501234567',
-      status: 'confirmed' as const,
+  // الحصول على المواعيد
+  const { data: appointments } = useQuery({
+    queryKey: ['appointments', user?.id, user?.role],
+    queryFn: () => {
+      if (user?.role === 'PATIENT') {
+        return appointmentsService.getPatientAppointments(parseInt(user.id));
+      } else if (user?.role === 'DOCTOR') {
+        return appointmentsService.getDoctorAppointments(parseInt(user.id));
+      }
+      return appointmentsService.getAppointments();
     },
-    {
-      id: '2',
-      doctor: 'د. فاطمة علي',
-      specialty: 'طب العيون',
-      date: '2025-10-28',
-      time: '2:00 مساءً',
-      location: 'مستشفى الملك فهد',
-      phone: '+966501234568',
-      status: 'pending' as const,
-    },
-  ];
+  });
 
-  const mockActivities = [
+  // تحويل المواعيد إلى التنسيق المطلوب
+  const formattedAppointments = appointments?.map(appointment => ({
+    id: appointment.id.toString(),
+    doctor: `د. ${appointment.doctor.user.profile.firstName} ${appointment.doctor.user.profile.lastName}`,
+    specialty: appointment.doctor.specialization,
+    date: new Date(appointment.appointmentDate).toLocaleDateString('ar-SA'),
+    time: appointment.appointmentTime,
+    location: appointment.doctor.clinic.name,
+    phone: appointment.doctor.user.profile.phone || '',
+    status: appointment.status.toLowerCase() as 'confirmed' | 'pending' | 'cancelled',
+  })) || [];
+
+  // النشاط الأخير (يمكن تحسينه لاحقاً)
+  const recentActivities = [
     {
       id: '1',
       type: 'appointment' as const,
       title: 'تم تأكيد الموعد',
-      description: 'موعدك مع د. أحمد محمد في 25 أكتوبر',
+      description: 'تم تأكيد موعد جديد',
       time: 'منذ ساعتين',
       status: 'completed' as const,
     },
@@ -66,17 +69,9 @@ export default function DashboardPage() {
       id: '2',
       type: 'message' as const,
       title: 'رسالة جديدة',
-      description: 'رسالة من د. فاطمة علي حول نتائج الفحص',
+      description: 'رسالة جديدة من الطبيب',
       time: 'منذ 4 ساعات',
       status: 'pending' as const,
-    },
-    {
-      id: '3',
-      type: 'record' as const,
-      title: 'تم تحديث السجل الطبي',
-      description: 'تم إضافة نتائج فحص الدم الجديدة',
-      time: 'منذ يوم',
-      status: 'completed' as const,
     },
   ];
 
@@ -91,7 +86,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <StatsCard
               title="المواعيد القادمة"
-              value="3"
+              value={formattedAppointments.length.toString()}
               icon={Calendar}
               color="blue"
               trend="+1 هذا الأسبوع"
@@ -123,7 +118,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* المواعيد القادمة */}
             <div className="lg:col-span-2">
-              <UpcomingAppointments appointments={mockAppointments} />
+              <UpcomingAppointments appointments={formattedAppointments} />
             </div>
 
             {/* الإجراءات السريعة */}
@@ -139,7 +134,7 @@ export default function DashboardPage() {
 
           {/* النشاط الأخير */}
           <div className="mt-8">
-            <RecentActivity activities={mockActivities} />
+            <RecentActivity activities={recentActivities} />
           </div>
         </div>
       </div>

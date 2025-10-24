@@ -4,154 +4,93 @@ export interface Doctor {
   id: number;
   userId: number;
   clinicId: number;
-  specialtyId: number;
   departmentId: number;
+  specialtyId: number;
   specialization: string;
   licenseNumber: string;
   experience: number;
-  consultationFee: string;
+  consultationFee: number;
   isAvailable: boolean;
-  createdAt: string;
-  updatedAt: string;
-  user?: {
+  avatar?: string;
+  user: {
     id: number;
     email: string;
     profile: {
       firstName: string;
       lastName: string;
-      phone: string;
-      address: string;
+      phone?: string;
     };
   };
-  clinic?: {
+  clinic: {
+    id: number;
+    name: string;
+    address: string;
+  };
+  department: {
     id: number;
     name: string;
   };
-  specialty?: {
+  specialty: {
     id: number;
     name: string;
   };
-  department?: {
-    id: number;
-    name: string;
-  };
-  schedules?: Array<{
-    id: number;
-    dayOfWeek: number;
-    startTime: string;
-    endTime: string;
-  }>;
-  ratings?: Array<{
-    id: number;
-    rating: number;
-    comment: string;
-    patient: {
-      profile: {
-        firstName: string;
-        lastName: string;
-      };
-    };
-  }>;
 }
 
 export interface CreateDoctorDto {
   userId: number;
   clinicId: number;
-  specialtyId: number;
   departmentId: number;
+  specialtyId: number;
   specialization: string;
   licenseNumber: string;
   experience: number;
   consultationFee: number;
-}
-
-export interface UpdateDoctorDto {
-  clinicId?: number;
-  specialtyId?: number;
-  departmentId?: number;
-  specialization?: string;
-  licenseNumber?: string;
-  experience?: number;
-  consultationFee?: number;
   isAvailable?: boolean;
-}
-
-export interface DoctorsQuery {
-  page?: number;
-  limit?: number;
-  clinicId?: number;
-  departmentId?: number;
-  specialtyId?: number;
-  specialization?: string;
-  isAvailable?: boolean;
-  search?: string;
+  avatar?: string;
 }
 
 export const doctorsService = {
-  // جلب جميع الأطباء
-  getDoctors: (query: DoctorsQuery = {}): Promise<Doctor[]> => {
-    const params = new URLSearchParams();
-    if (query.page) params.append('page', query.page.toString());
-    if (query.limit) params.append('limit', query.limit.toString());
-    if (query.clinicId) params.append('clinicId', query.clinicId.toString());
-    if (query.departmentId) params.append('departmentId', query.departmentId.toString());
-    if (query.specialtyId) params.append('specialtyId', query.specialtyId.toString());
-    if (query.specialization) params.append('specialization', query.specialization);
-    if (query.isAvailable !== undefined) params.append('isAvailable', query.isAvailable.toString());
-    if (query.search) params.append('search', query.search);
-
-    return apiClient.get(`/doctors?${params.toString()}`);
+  // الحصول على جميع الأطباء
+  async getDoctors(): Promise<Doctor[]> {
+    const response = await apiClient.get('/doctors');
+    return response as Doctor[];
   },
 
-  // جلب طبيب واحد
-  getDoctor: (id: number): Promise<Doctor> => {
-    return apiClient.get(`/doctors/${id}`);
-  },
-
-  // جلب طبيب واحد (alias)
-  getDoctorById: (id: number): Promise<Doctor> => {
-    return apiClient.get(`/doctors/${id}`);
+  // الحصول على طبيب محدد
+  async getDoctor(id: number): Promise<Doctor> {
+    const response = await apiClient.get(`/doctors/${id}`);
+    return response as Doctor;
   },
 
   // إنشاء طبيب جديد
-  createDoctor: (doctorData: CreateDoctorDto): Promise<Doctor> => {
-    return apiClient.post('/doctors', doctorData);
+  async createDoctor(data: CreateDoctorDto): Promise<Doctor> {
+    const response = await apiClient.post('/doctors', data);
+    return (response as any).data;
   },
 
   // تحديث طبيب
-  updateDoctor: (id: number, doctorData: UpdateDoctorDto): Promise<Doctor> => {
-    return apiClient.patch(`/doctors/${id}`, doctorData);
+  async updateDoctor(id: number, data: Partial<CreateDoctorDto>): Promise<Doctor> {
+    const response = await apiClient.put(`/doctors/${id}`, data);
+    return (response as any).data;
   },
 
   // حذف طبيب
-  deleteDoctor: (id: number): Promise<{ success: boolean }> => {
-    return apiClient.delete(`/doctors/${id}`);
+  async deleteDoctor(id: number): Promise<void> {
+    await apiClient.delete(`/doctors/${id}`);
   },
 
-  // تغيير حالة التوفر
-  setAvailability: (id: number, isAvailable: boolean): Promise<Doctor> => {
-    return apiClient.patch(`/doctors/${id}/availability`, { isAvailable });
-  },
-
-  // إحصائيات الأطباء
-  getDoctorsStats: (): Promise<{
-    totalDoctors: number;
-    availableDoctors: number;
-    unavailableDoctors: number;
-    doctorsBySpecialty: Record<string, number>;
-    doctorsByClinic: Record<string, number>;
-  }> => {
-    return apiClient.get('/doctors/stats');
-  },
-
-  // توزيع التقييمات
-  getRatingDistribution: (ratings: any[]): Record<number, number> => {
-    const distribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
-    ratings.forEach(rating => {
-      if (rating.rating >= 1 && rating.rating <= 5) {
-        distribution[rating.rating]++;
-      }
-    });
-    return distribution;
+  // البحث عن الأطباء
+  async searchDoctors(query: {
+    specialization?: string;
+    clinicId?: number;
+    isAvailable?: boolean;
+  }): Promise<Doctor[]> {
+    const params = new URLSearchParams();
+    if (query.specialization) params.append('specialization', query.specialization);
+    if (query.clinicId) params.append('clinicId', query.clinicId.toString());
+    if (query.isAvailable !== undefined) params.append('isAvailable', query.isAvailable.toString());
+    
+    const response = await apiClient.get(`/doctors/search?${params.toString()}`);
+    return (response as any).data;
   },
 };

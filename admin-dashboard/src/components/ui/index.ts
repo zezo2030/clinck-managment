@@ -6,3 +6,5 @@ export * from './PageHeader';
 export * from './DataTable';
 export * from './toast';
 export * from './toaster';
+export * from './textarea';
+export * from './checkbox';

@@ -6,6 +6,7 @@ export * from './doctors.service';
 export * from './clinics.service';
 export * from './appointments.service';
 export * from './consultations.service';
+export * from './departments.service';
 export * from './specialties.service';
 export * from './waiting-list.service';
 

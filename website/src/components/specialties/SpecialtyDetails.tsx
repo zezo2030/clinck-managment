@@ -3,7 +3,8 @@
 import React from 'react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { mockSpecialties } from '@/lib/mock-specialties';
+import { useQuery } from '@tanstack/react-query';
+import { specialtyService } from '@/lib/api/specialties';
 import { Users, Calendar, Star, Briefcase, DollarSign, MapPin, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -13,9 +14,26 @@ interface SpecialtyDetailsProps {
 
 export const SpecialtyDetails: React.FC<SpecialtyDetailsProps> = ({ specialtyId }) => {
   const router = useRouter();
-  const specialty = mockSpecialties.find(s => s.id === specialtyId);
+  
+  // الحصول على التخصص من API
+  const { data: specialty, isLoading, error } = useQuery({
+    queryKey: ['specialty', specialtyId],
+    queryFn: () => specialtyService.getSpecialty(specialtyId),
+    staleTime: 5 * 60 * 1000, // 5 دقائق
+  });
 
-  if (!specialty) {
+  if (isLoading) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center py-20">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">جاري تحميل التخصص...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !specialty) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center py-20">

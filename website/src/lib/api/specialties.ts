@@ -29,13 +29,13 @@ export interface CreateSpecialtyDto {
 
 export const specialtyService = {
   async getSpecialties(): Promise<Specialty[]> {
-    const response = await apiClient.get('/specialties');
-    return (response as any).data;
+    const response = await apiClient.get('/specialties/public');
+    return response as Specialty[];
   },
 
   async getSpecialty(id: number): Promise<Specialty> {
     const response = await apiClient.get(`/specialties/${id}`);
-    return (response as any).data;
+    return response as Specialty;
   },
 
   async createSpecialty(data: CreateSpecialtyDto): Promise<Specialty> {

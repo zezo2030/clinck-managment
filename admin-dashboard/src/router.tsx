@@ -14,6 +14,7 @@ const Clinics = React.lazy(() => import('@/pages/Clinics'));
 const Appointments = React.lazy(() => import('@/pages/Appointments'));
 const Consultations = React.lazy(() => import('@/pages/Consultations'));
 const Specialties = React.lazy(() => import('@/pages/Specialties'));
+const Departments = React.lazy(() => import('@/pages/Departments'));
 const WaitingList = React.lazy(() => import('@/pages/WaitingList'));
 const Reports = React.lazy(() => import('@/pages/Reports'));
 const Settings = React.lazy(() => import('@/pages/Settings'));
@@ -106,6 +107,14 @@ export const router = createBrowserRouter([
     element: (
       <ProtectedRoute>
         <Specialties />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/departments',
+    element: (
+      <ProtectedRoute>
+        <Departments />
       </ProtectedRoute>
     ),
   },

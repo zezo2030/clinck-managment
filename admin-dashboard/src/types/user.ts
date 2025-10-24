@@ -31,6 +31,9 @@ export interface Specialty {
   id: number;
   name: string;
   description?: string;
+  icon?: string;
+  services: string[];
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }

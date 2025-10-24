@@ -7,14 +7,59 @@ import { Button } from '@/components/ui/Button';
 import { Stethoscope, Users, Calendar } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { specialtyService } from '@/lib/api/specialties';
-import { mockSpecialties } from '@/lib/mock-specialties';
 import { useRouter } from 'next/navigation';
 
 export const SpecialtiesOverview: React.FC = () => {
   const router = useRouter();
   
-  // استخدام البيانات الوهمية مؤقتاً حتى يتم تشغيل Backend
-  const specialties = mockSpecialties;
+  // الحصول على التخصصات من API
+  const { data: specialties, isLoading, error } = useQuery({
+    queryKey: ['specialties'],
+    queryFn: () => specialtyService.getSpecialties(),
+    staleTime: 5 * 60 * 1000, // 5 دقائق
+  });
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Stethoscope className="w-5 h-5 text-blue-600" />
+            التخصصات المتاحة
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center py-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">جاري تحميل التخصصات...</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Stethoscope className="w-5 h-5 text-blue-600" />
+            التخصصات المتاحة
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <p className="text-red-600 mb-4">حدث خطأ في تحميل التخصصات</p>
+            <Button onClick={() => window.location.reload()}>
+              إعادة المحاولة
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -26,7 +71,7 @@ export const SpecialtiesOverview: React.FC = () => {
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {specialties.slice(0, 6).map((specialty) => (
+          {specialties?.slice(0, 6).map((specialty) => (
             <div key={specialty.id} className="p-4 border rounded-lg hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
